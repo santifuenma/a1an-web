@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A1AN — Robot Asistencial | Safe&Sound Robotics</title>
+  <meta name="description" content="A1AN es un robot asistencial inteligente diseñado para personas con movilidad reducida. Rehabilitación, seguimiento y apoyo en el hogar.">
+  <link rel="icon" href="assets/logo.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+  <!-- ====== HEADER ====== -->
+  <header class="site-header" id="header">
+    <div class="header-inner">
+      <a href="index.html" class="header-logo">
+        <img src="assets/logo.png" alt="Safe&Sound Robotics">
+        <span>Safe&Sound</span>
+      </a>
+
+      <nav class="header-nav" id="headerNav">
+        <a href="#inicio">Inicio</a>
+        <a href="#sobre">Sobre el proyecto</a>
+        <a href="#funcionalidades">Funcionalidades</a>
+        <a href="#contacto">Contacto</a>
+      </nav>
+
+      <div class="header-actions" id="headerActions">
+        <a href="login.html" class="btn btn-sm btn-outline-dark" id="loginBtn">Iniciar sesión</a>
+        <a href="register.html" class="btn btn-sm btn-primary">Registro</a>
+      </div>
+
+      <button class="hamburger" id="hamburger" aria-label="Menú">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ====== HERO ====== -->
+  <section class="hero" id="inicio">
+    <div class="container hero-inner">
+      <div class="hero-content">
+        <span class="hero-label">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          Safe&Sound Robotics
+        </span>
+        <h1>Tu asistente de rehabilitación <span class="highlight">inteligente</span></h1>
+        <p class="hero-description">A1AN es un robot asistencial diseñado para acompañar a personas con movilidad reducida en su proceso de rehabilitación. Seguimiento personalizado, ejercicios guiados y apoyo constante en el hogar.</p>
+        <div class="hero-buttons">
+          <a href="#sobre" class="btn btn-lg btn-primary">Conocer el proyecto</a>
+          <a href="#funcionalidades" class="btn btn-lg btn-outline">Ver funcionalidades</a>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <span class="hero-stat-value">24/7</span>
+            <span class="hero-stat-label">Asistencia continua</span>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat-value">+50</span>
+            <span class="hero-stat-label">Ejercicios disponibles</span>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat-value">100%</span>
+            <span class="hero-stat-label">Seguimiento digital</span>
+          </div>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-robot-container">
+          <div class="hero-robot-circle"></div>
+          <div class="hero-robot-circle"></div>
+          <div class="hero-robot-circle"></div>
+          <img src="assets/logo.png" alt="A1AN Robot" class="hero-robot-logo">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== ABOUT ====== -->
+  <section class="section" id="sobre">
+    <div class="container">
+      <div class="about-grid fade-in">
+        <div class="about-content">
+          <h2>Sobre el proyecto A1AN</h2>
+          <p><strong>Safe&Sound Robotics</strong> es un proyecto universitario de robótica enfocado en desarrollar soluciones tecnológicas que mejoren la calidad de vida de personas con movilidad reducida.</p>
+          <p><strong>A1AN</strong> es nuestro robot asistencial: un compañero inteligente diseñado para el hogar que ayuda en la búsqueda y localización de objetos cotidianos, guía ejercicios de rehabilitación funcional y realiza un seguimiento continuo del progreso del usuario.</p>
+          <p>A diferencia de otras soluciones, A1AN combina asistencia física con seguimiento digital, ofreciendo una experiencia integral orientada al bienestar y la autonomía personal.</p>
+        </div>
+        <div class="about-visual">
+          <div class="about-card">
+            <div class="about-card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div>
+              <h4>Personas con movilidad reducida</h4>
+              <p>Diseñado para quienes necesitan apoyo diario en el hogar y en su proceso de rehabilitación.</p>
+            </div>
+          </div>
+          <div class="about-card">
+            <div class="about-card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+            <div>
+              <h4>Rehabilitación funcional</h4>
+              <p>Ejercicios guiados y seguimiento del progreso para una recuperación más efectiva.</p>
+            </div>
+          </div>
+          <div class="about-card">
+            <div class="about-card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div>
+              <h4>Seguridad y confianza</h4>
+              <p>Tecnología robusta y fiable, pensada para operar en un entorno doméstico con total seguridad.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== FEATURES ====== -->
+  <section class="section section-alt" id="funcionalidades">
+    <div class="container">
+      <h2 class="section-title fade-in">Funcionalidades principales</h2>
+      <p class="section-subtitle fade-in">A1AN integra múltiples capacidades para ofrecer un acompañamiento completo en el día a día.</p>
+      <div class="features-grid">
+        <div class="card feature-card fade-in">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <h3>Asistencia al usuario</h3>
+          <p>Apoyo diario en tareas del hogar, localización de objetos y recordatorios personalizados para la constancia.</p>
+        </div>
+        <div class="card feature-card fade-in">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </div>
+          <h3>Ejercicios de rehabilitación</h3>
+          <p>Biblioteca de ejercicios funcionales con rutinas personalizadas y seguimiento de cada sesión.</p>
+        </div>
+        <div class="card feature-card fade-in">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <h3>Seguimiento de actividad</h3>
+          <p>Registro detallado de sesiones, eventos y progreso para una visión completa del estado del usuario.</p>
+        </div>
+        <div class="card feature-card fade-in">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          </div>
+          <h3>Alertas y recordatorios</h3>
+          <p>Notificaciones inteligentes para ejercicios, medicamentos y eventos importantes del día a día.</p>
+        </div>
+        <div class="card feature-card fade-in">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+          <h3>Monitorización del robot</h3>
+          <p>Control en tiempo real del estado del robot: batería, conexión, diagnóstico y última sincronización.</p>
+        </div>
+        <div class="card feature-card fade-in">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </div>
+          <h3>Fácil de usar</h3>
+          <p>Interfaz intuitiva y sencilla diseñada para que cualquier persona pueda gestionar el robot sin dificultad.</p>
+        </div>
+        <div class="card feature-card fade-in">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <h3>Seguridad y fiabilidad</h3>
+          <p>Diseño robusto y protocolos de seguridad que garantizan un funcionamiento fiable en el entorno doméstico.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== HOW IT WORKS ====== -->
+  <section class="section" id="como-funciona">
+    <div class="container">
+      <h2 class="section-title fade-in">¿Cómo funciona?</h2>
+      <p class="section-subtitle fade-in">En cinco sencillos pasos estarás aprovechando todo el potencial de A1AN.</p>
+      <div class="steps-container">
+        <div class="step-item fade-in">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h3>Crea tu cuenta</h3>
+            <p>Regístrate en la plataforma con tus datos personales para acceder a todas las funcionalidades.</p>
+          </div>
+        </div>
+        <div class="step-item fade-in">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h3>Inicia sesión</h3>
+            <p>Accede a tu panel de control privado con tus credenciales de forma segura.</p>
+          </div>
+        </div>
+        <div class="step-item fade-in">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h3>Vincula tu robot</h3>
+            <p>Conecta tu robot A1AN introduciendo su código de identificación o escaneando el QR del dispositivo.</p>
+          </div>
+        </div>
+        <div class="step-item fade-in">
+          <div class="step-number">4</div>
+          <div class="step-content">
+            <h3>Gestiona ejercicios</h3>
+            <p>Crea rutinas personalizadas, programa ejercicios y haz seguimiento de cada sesión de rehabilitación.</p>
+          </div>
+        </div>
+        <div class="step-item fade-in">
+          <div class="step-number">5</div>
+          <div class="step-content">
+            <h3>Consulta tu progreso</h3>
+            <p>Revisa el historial de actividad, notificaciones, alertas y el estado de tu robot desde el panel.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== BENEFITS ====== -->
+  <section class="section section-alt" id="beneficios">
+    <div class="container">
+      <h2 class="section-title fade-in">Beneficios de A1AN</h2>
+      <p class="section-subtitle fade-in">Una solución integral que pone la tecnología al servicio del bienestar.</p>
+      <div class="benefits-grid">
+        <div class="benefit-item fade-in">
+          <div class="benefit-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </div>
+          <div class="benefit-text">
+            <h4>Apoyo a la rehabilitación</h4>
+            <p>Ejercicios guiados y seguimiento que facilitan la recuperación funcional del usuario.</p>
+          </div>
+        </div>
+        <div class="benefit-item fade-in">
+          <div class="benefit-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+          <div class="benefit-text">
+            <h4>Control centralizado</h4>
+            <p>Toda la información del robot, ejercicios y actividad en un único panel intuitivo.</p>
+          </div>
+        </div>
+        <div class="benefit-item fade-in">
+          <div class="benefit-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <div class="benefit-text">
+            <h4>Mejor seguimiento</h4>
+            <p>Datos detallados sobre sesiones, progreso y uso del robot para tomar mejores decisiones.</p>
+          </div>
+        </div>
+        <div class="benefit-item fade-in">
+          <div class="benefit-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+          </div>
+          <div class="benefit-text">
+            <h4>Experiencia intuitiva</h4>
+            <p>Interfaz diseñada para ser accesible y fácil de usar por cualquier persona.</p>
+          </div>
+        </div>
+        <div class="benefit-item fade-in">
+          <div class="benefit-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div class="benefit-text">
+            <h4>Seguridad garantizada</h4>
+            <p>Protocolos robustos que aseguran la protección de los datos y la fiabilidad del sistema.</p>
+          </div>
+        </div>
+        <div class="benefit-item fade-in">
+          <div class="benefit-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          </div>
+          <div class="benefit-text">
+            <h4>Tecnología orientada al bienestar</h4>
+            <p>Innovación con enfoque humano, diseñada para mejorar la calidad de vida.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== CONTACT ====== -->
+  <section class="section" id="contacto">
+    <div class="container">
+      <h2 class="section-title fade-in">Contacto</h2>
+      <p class="section-subtitle fade-in">¿Tienes preguntas sobre el proyecto? Escríbenos y te responderemos lo antes posible.</p>
+      <div class="contact-wrapper fade-in">
+        <form class="contact-form" id="contactForm">
+          <div class="form-group">
+            <label for="contactName">Nombre completo</label>
+            <input type="text" id="contactName" placeholder="Tu nombre" required>
+          </div>
+          <div class="form-group">
+            <label for="contactEmail">Correo electrónico</label>
+            <input type="email" id="contactEmail" placeholder="tu@email.com" required>
+          </div>
+          <div class="form-group">
+            <label for="contactMessage">Mensaje</label>
+            <textarea id="contactMessage" placeholder="Escribe tu mensaje aquí..." required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg">Enviar mensaje</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== FOOTER ====== -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <img src="assets/logo.png" alt="Safe&Sound Robotics">
+          <p>Safe&Sound Robotics es un proyecto universitario de robótica asistencial. A1AN es nuestro robot diseñado para acompañar a personas con movilidad reducida en su rehabilitación diaria.</p>
+        </div>
+        <div class="footer-links">
+          <h4>Enlaces</h4>
+          <ul>
+            <li><a href="#inicio">Inicio</a></li>
+            <li><a href="#sobre">Sobre el proyecto</a></li>
+            <li><a href="#funcionalidades">Funcionalidades</a></li>
+            <li><a href="#contacto">Contacto</a></li>
+            <li><a href="login.html">Iniciar sesión</a></li>
+          </ul>
+        </div>
+        <div class="footer-contact">
+          <h4>Contacto</h4>
+          <p>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            info@safesoundrobotics.com
+          </p>
+          <p>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Universidad — Dpto. de Ingeniería
+          </p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        &copy; 2026 Safe&Sound Robotics. Todos los derechos reservados. Proyecto universitario A1AN.
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ejercicios — A1AN | Safe&Sound Robotics</title>
+  <link rel="icon" href="assets/logo.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+  <div class="dashboard-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <a href="dashboard.html" class="sidebar-logo">
+        <img src="assets/logo.png" alt="Safe&Sound Robotics">
+        <span>Safe&Sound</span>
+      </a>
+      <nav class="sidebar-nav">
+        <div class="sidebar-section">
+          <span class="sidebar-section-title">General</span>
+          <a href="dashboard.html" class="sidebar-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Dashboard
+          </a>
+          <a href="robot.html" class="sidebar-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+            Mi robot
+          </a>
+        </div>
+        <div class="sidebar-section">
+          <span class="sidebar-section-title">Rehabilitación</span>
+          <a href="exercises.html" class="sidebar-link active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            Ejercicios
+          </a>
+          <a href="activity.html" class="sidebar-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Actividad
+          </a>
+        </div>
+        <div class="sidebar-section">
+          <span class="sidebar-section-title">Sistema</span>
+          <a href="notifications.html" class="sidebar-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            Notificaciones
+            <span class="sidebar-badge">3</span>
+          </a>
+          <a href="profile.html" class="sidebar-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Perfil
+          </a>
+          <a href="support.html" class="sidebar-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Ayuda
+          </a>
+        </div>
+      </nav>
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" id="sidebarAvatar">U</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebarUserName">Usuario</div>
+          <div class="sidebar-user-email" id="sidebarUserEmail">user@email.com</div>
+        </div>
+        <button class="sidebar-logout" id="logoutBtn" title="Cerrar sesión">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- MAIN -->
+    <main class="main-content">
+      <div class="topbar">
+        <div class="topbar-left">
+          <button class="topbar-toggle" id="sidebarToggle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <div class="topbar-breadcrumb">
+            <span>Inicio</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            <span class="current">Ejercicios</span>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <a href="notifications.html" class="topbar-notification">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="topbar-notification-badge"></span>
+          </a>
+          <div class="topbar-user">
+            <div class="topbar-user-avatar" id="topbarAvatar">U</div>
+            <span class="topbar-user-name" id="topbarUserName">Usuario</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="page-content">
+        <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: var(--spacing-4);">
+          <div>
+            <h1>Ejercicios de rehabilitación</h1>
+            <p>Biblioteca de ejercicios, rutinas personalizadas y planificación semanal.</p>
+          </div>
+          <button class="btn btn-primary" id="newRoutineBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nueva rutina
+          </button>
+        </div>
+
+        <!-- Exercise Library -->
+        <h3 style="margin-bottom: var(--spacing-4);">Biblioteca de ejercicios</h3>
+        <div class="cards-grid" style="margin-bottom: var(--spacing-10);">
+          <div class="exercise-card">
+            <div class="exercise-card-header">
+              <div class="exercise-card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              </div>
+              <span class="badge badge-success">Activo</span>
+            </div>
+            <h3>Movilidad de hombro</h3>
+            <p>Ejercicio de elevación y rotación del hombro para mejorar el rango de movimiento articular.</p>
+            <div class="exercise-card-meta">
+              <span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                15 min
+              </span>
+              <span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                Media
+              </span>
+            </div>
+          </div>
+
+          <div class="exercise-card">
+            <div class="exercise-card-header">
+              <div class="exercise-card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              </div>
+              <span class="badge badge-success">Activo</span>
+            </div>
+            <h3>Flexión de rodilla</h3>
+            <p>Ejercicio controlado de flexión y extensión de rodilla para fortalecer la articulación.</p>
+            <div class="exercise-card-meta">
+              <span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                20 min
+              </span>
+              <span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                Baja
+              </span>
+            </div>
+          </div>
+
+          <div class="exercise-card">
+            <div class="exercise-card-header">
+              <div class="exercise-card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              </div>
+              <span class="badge badge-info">Programado</span>
+            </div>
+            <h3>Extensión de muñeca</h3>
+            <p>Ejercicio de extensión y flexión de muñeca para recuperar movilidad fina.</p>
+            <div class="exercise-card-meta">
+              <span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                10 min
+              </span>
+              <span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                Baja
+              </span>
+            </div>
+          </div>
+
+          <div class="exercise-card">
+            <div class="exercise-card-header">
+              <div class="exercise-card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              </div>
+              <span class="badge badge-warning">Pausado</span>
+            </div>
+            <h3>Fortalecimiento de core</h3>
+            <p>Rutina de estabilización del tronco con ejercicios isométricos adaptados.</p>
+            <div class="exercise-card-meta">
+              <span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                25 min
+              </span>
+              <span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                Alta
+              </span>
+            </div>
+          </div>
+
+          <div class="exercise-card">
+            <div class="exercise-card-header">
+              <div class="exercise-card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              </div>
+              <span class="badge badge-success">Activo</span>
+            </div>
+            <h3>Equilibrio estático</h3>
+            <p>Práctica de equilibrio con apoyo para mejorar la estabilidad postural.</p>
+            <div class="exercise-card-meta">
+              <span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                12 min
+              </span>
+              <span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                Media
+              </span>
+            </div>
+          </div>
+
+          <div class="exercise-card">
+            <div class="exercise-card-header">
+              <div class="exercise-card-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              </div>
+              <span class="badge badge-info">Programado</span>
+            </div>
+            <h3>Movilidad de tobillo</h3>
+            <p>Ejercicios de dorsiflexión y plantiflexión para recuperar movilidad del tobillo.</p>
+            <div class="exercise-card-meta">
+              <span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                10 min
+              </span>
+              <span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                Baja
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Weekly Schedule -->
+        <h3 style="margin-bottom: var(--spacing-4);">Planificación semanal</h3>
+        <div class="schedule-grid" style="margin-bottom: var(--spacing-10);">
+          <div class="schedule-day">
+            <div class="schedule-day-header">Lun</div>
+            <div class="schedule-event">Hombro 09:00</div>
+            <div class="schedule-event">Rodilla 16:00</div>
+          </div>
+          <div class="schedule-day">
+            <div class="schedule-day-header">Mar</div>
+            <div class="schedule-event">Muñeca 10:00</div>
+          </div>
+          <div class="schedule-day">
+            <div class="schedule-day-header">Mié</div>
+            <div class="schedule-event">Hombro 09:00</div>
+            <div class="schedule-event">Core 11:00</div>
+          </div>
+          <div class="schedule-day">
+            <div class="schedule-day-header">Jue</div>
+            <div class="schedule-event">Rodilla 16:00</div>
+          </div>
+          <div class="schedule-day">
+            <div class="schedule-day-header">Vie</div>
+            <div class="schedule-event">Equilibrio 10:00</div>
+            <div class="schedule-event">Tobillo 12:00</div>
+          </div>
+          <div class="schedule-day">
+            <div class="schedule-day-header">Sáb</div>
+            <div class="schedule-event">Hombro 10:00</div>
+          </div>
+          <div class="schedule-day">
+            <div class="schedule-day-header">Dom</div>
+          </div>
+        </div>
+
+        <!-- Exercise History -->
+        <h3 style="margin-bottom: var(--spacing-4);">Historial de ejercicios</h3>
+        <div class="data-table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Ejercicio</th>
+                <th>Fecha</th>
+                <th>Duración</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Movilidad de hombro</td>
+                <td>23 Mar 2026</td>
+                <td>14 min</td>
+                <td><span class="badge badge-success">Completado</span></td>
+              </tr>
+              <tr>
+                <td>Flexión de rodilla</td>
+                <td>22 Mar 2026</td>
+                <td>18 min</td>
+                <td><span class="badge badge-success">Completado</span></td>
+              </tr>
+              <tr>
+                <td>Extensión de muñeca</td>
+                <td>22 Mar 2026</td>
+                <td>10 min</td>
+                <td><span class="badge badge-success">Completado</span></td>
+              </tr>
+              <tr>
+                <td>Fortalecimiento de core</td>
+                <td>21 Mar 2026</td>
+                <td>12 min</td>
+                <td><span class="badge badge-warning">Interrumpido</span></td>
+              </tr>
+              <tr>
+                <td>Movilidad de hombro</td>
+                <td>21 Mar 2026</td>
+                <td>15 min</td>
+                <td><span class="badge badge-success">Completado</span></td>
+              </tr>
+              <tr>
+                <td>Equilibrio estático</td>
+                <td>20 Mar 2026</td>
+                <td>11 min</td>
+                <td><span class="badge badge-success">Completado</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- New Routine Modal -->
+  <div class="modal-overlay" id="routineModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Nueva rutina</h2>
+        <button class="modal-close" id="closeRoutineModal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="routineForm">
+          <div class="form-group" style="margin-bottom: var(--spacing-5);">
+            <label for="routineName">Nombre de la rutina</label>
+            <input type="text" id="routineName" placeholder="Ej: Rutina matutina">
+          </div>
+          <div class="form-group" style="margin-bottom: var(--spacing-5);">
+            <label for="routineExercise">Ejercicio</label>
+            <select id="routineExercise">
+              <option value="">Seleccionar ejercicio</option>
+              <option value="hombro">Movilidad de hombro</option>
+              <option value="rodilla">Flexión de rodilla</option>
+              <option value="muneca">Extensión de muñeca</option>
+              <option value="core">Fortalecimiento de core</option>
+              <option value="equilibrio">Equilibrio estático</option>
+              <option value="tobillo">Movilidad de tobillo</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom: var(--spacing-5);">
+            <label for="routineDay">Día</label>
+            <select id="routineDay">
+              <option value="">Seleccionar día</option>
+              <option value="lunes">Lunes</option>
+              <option value="martes">Martes</option>
+              <option value="miercoles">Miércoles</option>
+              <option value="jueves">Jueves</option>
+              <option value="viernes">Viernes</option>
+              <option value="sabado">Sábado</option>
+              <option value="domingo">Domingo</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="routineTime">Hora</label>
+            <input type="time" id="routineTime" value="09:00">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-dark btn-sm" id="cancelRoutineBtn">Cancelar</button>
+        <button class="btn btn-primary btn-sm" id="saveRoutineBtn">Guardar rutina</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="js/dashboard.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const modal = document.getElementById('routineModal');
+      const openBtn = document.getElementById('newRoutineBtn');
+      const closeBtn = document.getElementById('closeRoutineModal');
+      const cancelBtn = document.getElementById('cancelRoutineBtn');
+      const saveBtn = document.getElementById('saveRoutineBtn');
+
+      function openModal() { modal?.classList.add('active'); }
+      function closeModal() { modal?.classList.remove('active'); }
+
+      openBtn?.addEventListener('click', openModal);
+      closeBtn?.addEventListener('click', closeModal);
+      cancelBtn?.addEventListener('click', closeModal);
+      modal?.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+      saveBtn?.addEventListener('click', () => {
+        const name = document.getElementById('routineName').value.trim();
+        if (!name) {
+          showToast('Introduce un nombre para la rutina', 'danger');
+          return;
+        }
+        closeModal();
+        showToast('Rutina "' + name + '" creada correctamente', 'success');
+      });
+    });
+  </script>
+</body>
+</html>

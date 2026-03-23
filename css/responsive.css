@@ -1,0 +1,323 @@
+/* ============================================
+   Safe&Sound Robotics — A1AN Web
+   Responsive Breakpoints
+   ============================================ */
+
+/* --- Tablet: <= 1024px --- */
+@media (max-width: 1024px) {
+  :root {
+    --font-size-5xl: 2.5rem;
+    --font-size-4xl: 2rem;
+    --font-size-3xl: 1.75rem;
+  }
+
+  .hero-inner {
+    gap: var(--spacing-8);
+  }
+
+  .hero-robot-container {
+    width: 300px;
+    height: 300px;
+  }
+
+  .hero-robot-logo {
+    width: 120px;
+    height: 120px;
+  }
+
+  .about-grid {
+    gap: var(--spacing-8);
+  }
+
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .benefits-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-8);
+  }
+
+  .footer-brand {
+    grid-column: 1 / -1;
+  }
+
+  /* Dashboard */
+  .dashboard-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .main-content {
+    grid-column: 1;
+  }
+
+  .topbar-toggle {
+    display: block;
+  }
+
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .support-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .schedule-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* --- Mobile: <= 768px --- */
+@media (max-width: 768px) {
+  :root {
+    --font-size-5xl: 2rem;
+    --font-size-3xl: 1.5rem;
+    --font-size-2xl: 1.25rem;
+    --header-height: 64px;
+  }
+
+  /* Header */
+  .header-nav,
+  .header-actions {
+    display: none;
+  }
+
+  .header-nav.open,
+  .header-actions.open {
+    display: flex;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+
+  .header-nav.open {
+    position: absolute;
+    top: var(--header-height);
+    left: 0;
+    right: 0;
+    background: var(--color-white);
+    flex-direction: column;
+    padding: var(--spacing-4) var(--spacing-6);
+    box-shadow: var(--shadow-lg);
+    gap: var(--spacing-4);
+  }
+
+  .header-actions.open {
+    position: absolute;
+    top: calc(var(--header-height) + 200px);
+    left: 0;
+    right: 0;
+    background: var(--color-white);
+    padding: 0 var(--spacing-6) var(--spacing-4);
+    box-shadow: var(--shadow-lg);
+    gap: var(--spacing-3);
+  }
+
+  /* Hero */
+  .hero {
+    min-height: auto;
+    padding: calc(var(--header-height) + var(--spacing-10)) 0 var(--spacing-10);
+  }
+
+  .hero-inner {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .hero-content {
+    max-width: 100%;
+  }
+
+  .hero-label {
+    margin: 0 auto var(--spacing-4);
+  }
+
+  .hero-buttons {
+    justify-content: center;
+  }
+
+  .hero-visual {
+    order: -1;
+  }
+
+  .hero-robot-container {
+    width: 220px;
+    height: 220px;
+  }
+
+  .hero-robot-logo {
+    width: 90px;
+    height: 90px;
+  }
+
+  .hero-stats {
+    justify-content: center;
+    gap: var(--spacing-6);
+    flex-wrap: wrap;
+  }
+
+  /* Sections */
+  .section {
+    padding: var(--spacing-12) 0;
+  }
+
+  .about-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-content {
+    padding-left: var(--spacing-6);
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .benefits-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .steps-container {
+    padding-left: var(--spacing-2);
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-6);
+  }
+
+  /* Dashboard */
+  .page-content {
+    padding: var(--spacing-4);
+  }
+
+  .topbar {
+    padding: var(--spacing-3) var(--spacing-4);
+  }
+
+  .widgets-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .robot-status-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .diagnostic-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .schedule-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .profile-form {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-actions {
+    flex-direction: column;
+  }
+
+  .quick-actions .btn {
+    width: 100%;
+  }
+
+  .notification-filters {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  /* Auth */
+  .auth-card {
+    padding: var(--spacing-6);
+  }
+
+  .auth-row {
+    grid-template-columns: 1fr;
+  }
+
+  .robot-link-card {
+    padding: var(--spacing-6);
+  }
+}
+
+/* --- Small: <= 480px --- */
+@media (max-width: 480px) {
+  :root {
+    --font-size-5xl: 1.75rem;
+    --font-size-3xl: 1.35rem;
+  }
+
+  .container {
+    padding: 0 var(--spacing-4);
+  }
+
+  .btn {
+    padding: 0.6rem 1.25rem;
+    font-size: var(--font-size-xs);
+  }
+
+  .btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: var(--font-size-sm);
+  }
+
+  .hero-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .hero-buttons .btn {
+    width: 100%;
+  }
+
+  .hero-stats {
+    flex-direction: column;
+    gap: var(--spacing-3);
+  }
+
+  .auth-card {
+    padding: var(--spacing-5);
+  }
+
+  .auth-logo img {
+    height: 40px;
+  }
+
+  .widget {
+    padding: var(--spacing-4);
+  }
+
+  .modal {
+    margin: var(--spacing-4);
+  }
+
+  .schedule-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 0.6rem var(--spacing-3);
+    font-size: var(--font-size-xs);
+  }
+}
