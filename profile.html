@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Perfil — A1AN | Safe&Sound Robotics</title>
+  <title>Mi perfil — A1AN | Safe&Sound Robotics</title>
   <link rel="icon" href="assets/logo.png" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -50,7 +50,7 @@
           <a href="notifications.html" class="sidebar-link">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
             Notificaciones
-            <span class="sidebar-badge">3</span>
+            <span class="sidebar-badge" id="sidebarNotifBadge">3</span>
           </a>
           <a href="profile.html" class="sidebar-link active">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -86,7 +86,7 @@
           <div class="topbar-breadcrumb">
             <span>Inicio</span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-            <span class="current">Perfil</span>
+            <span class="current">Mi perfil</span>
           </div>
         </div>
         <div class="topbar-right">
@@ -94,105 +94,128 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
             <span class="topbar-notification-badge"></span>
           </a>
-          <div class="topbar-user">
+          <a href="profile.html" class="topbar-user">
             <div class="topbar-user-avatar" id="topbarAvatar">U</div>
             <span class="topbar-user-name" id="topbarUserName">Usuario</span>
-          </div>
+          </a>
         </div>
       </div>
 
       <div class="page-content">
-        <div class="page-header">
-          <h1>Mi perfil</h1>
-          <p>Gestiona tus datos personales, contraseña y configuración de cuenta.</p>
-        </div>
 
-        <div class="profile-grid">
-          <div>
-            <!-- Personal data -->
-            <div class="profile-section" style="margin-bottom: var(--spacing-8);">
-              <h2>Datos personales</h2>
-              <form class="profile-form" id="profileForm">
-                <div class="form-group">
-                  <label for="profileFirstName">Nombre</label>
-                  <input type="text" id="profileFirstName" value="">
+        <div class="profile-page-layout">
+
+          <!-- ===== COLUMNA IZQUIERDA: Avatar card ===== -->
+          <div class="profile-avatar-card">
+            <div class="profile-big-avatar" id="profileBigAvatar">U</div>
+            <div class="profile-avatar-name" id="profileAvatarName">Usuario</div>
+            <div class="profile-avatar-email" id="profileAvatarEmail">user@email.com</div>
+            <div class="profile-avatar-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Cuenta verificada
+            </div>
+
+            <div class="profile-avatar-divider"></div>
+
+            <div class="profile-meta-row">
+              <span class="profile-meta-label">Miembro desde</span>
+              <span class="profile-meta-value">Mar 2026</span>
+            </div>
+            <div class="profile-meta-row">
+              <span class="profile-meta-label">Robot vinculado</span>
+              <span class="profile-meta-value" id="profileRobotIdSmall">A1AN-7F3K-9X2P</span>
+            </div>
+            <div class="profile-meta-row">
+              <span class="profile-meta-label">Plan</span>
+              <span class="profile-meta-value"><span class="badge badge-info">Estándar</span></span>
+            </div>
+
+            <p class="profile-avatar-note">La foto de perfil se genera automáticamente con tus iniciales.</p>
+          </div>
+
+          <!-- ===== COLUMNA DERECHA: formularios ===== -->
+          <div class="profile-forms-col">
+
+            <!-- Datos personales -->
+            <div class="profile-section">
+              <div class="profile-section-header">
+                <div class="profile-section-icon" style="background: rgba(83,178,184,0.12); color: var(--color-accent);">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </div>
+                <div>
+                  <h2>Datos personales</h2>
+                  <p>Actualiza tu nombre y correo electrónico.</p>
+                </div>
+              </div>
+              <form id="profileForm">
+                <div class="profile-form-row">
+                  <div class="form-group">
+                    <label for="profileFirstName">Nombre</label>
+                    <input type="text" id="profileFirstName" placeholder="Tu nombre">
+                  </div>
+                  <div class="form-group">
+                    <label for="profileLastName">Apellidos</label>
+                    <input type="text" id="profileLastName" placeholder="Tus apellidos">
+                  </div>
                 </div>
                 <div class="form-group">
-                  <label for="profileLastName">Apellidos</label>
-                  <input type="text" id="profileLastName" value="">
-                </div>
-                <div class="form-group full-width">
                   <label for="profileEmail">Correo electrónico</label>
-                  <input type="email" id="profileEmail" value="">
+                  <input type="email" id="profileEmail" placeholder="tu@email.com">
                 </div>
-                <div class="form-group full-width" style="text-align: right;">
-                  <button type="submit" class="btn btn-primary btn-sm">Guardar cambios</button>
+                <div style="display: flex; justify-content: flex-end; margin-top: var(--spacing-4);">
+                  <button type="submit" class="btn btn-primary">Guardar cambios</button>
                 </div>
               </form>
             </div>
 
-            <!-- Change password -->
+            <!-- Cambiar contraseña -->
             <div class="profile-section">
-              <h2>Cambiar contraseña</h2>
-              <form class="profile-form" id="passwordForm" style="grid-template-columns: 1fr;">
+              <div class="profile-section-header">
+                <div class="profile-section-icon" style="background: rgba(239,68,68,0.1); color: #ef4444;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </div>
+                <div>
+                  <h2>Cambiar contraseña</h2>
+                  <p>Usa una contraseña segura de al menos 6 caracteres.</p>
+                </div>
+              </div>
+              <form id="passwordForm">
                 <div class="form-group">
                   <label for="currentPassword">Contraseña actual</label>
-                  <input type="password" id="currentPassword" placeholder="Tu contraseña actual">
+                  <div class="password-input-wrapper">
+                    <input type="password" id="currentPassword" placeholder="Tu contraseña actual">
+                    <button type="button" class="password-toggle" data-target="currentPassword" aria-label="Mostrar contraseña">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                  </div>
                 </div>
                 <div class="form-group">
                   <label for="newPassword">Nueva contraseña</label>
-                  <input type="password" id="newPassword" placeholder="Mínimo 6 caracteres">
+                  <div class="password-input-wrapper">
+                    <input type="password" id="newPassword" placeholder="Mínimo 6 caracteres">
+                    <button type="button" class="password-toggle" data-target="newPassword" aria-label="Mostrar contraseña">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                  </div>
                 </div>
                 <div class="form-group">
                   <label for="confirmNewPassword">Confirmar nueva contraseña</label>
-                  <input type="password" id="confirmNewPassword" placeholder="Repite la nueva contraseña">
+                  <div class="password-input-wrapper">
+                    <input type="password" id="confirmNewPassword" placeholder="Repite la contraseña">
+                    <button type="button" class="password-toggle" data-target="confirmNewPassword" aria-label="Mostrar contraseña">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                  </div>
                 </div>
-                <div class="form-group" style="text-align: right;">
-                  <button type="submit" class="btn btn-primary btn-sm">Actualizar contraseña</button>
+                <div style="display: flex; justify-content: flex-end; margin-top: var(--spacing-4);">
+                  <button type="submit" class="btn btn-danger-outline">Actualizar contraseña</button>
                 </div>
               </form>
             </div>
-          </div>
 
-          <!-- Right column: robot info + account -->
-          <div>
-            <div class="profile-robot-card" style="margin-bottom: var(--spacing-6);">
-              <h3>Robot vinculado</h3>
-              <div class="profile-robot-item">
-                <span class="label">Modelo</span>
-                <span>A1AN</span>
-              </div>
-              <div class="profile-robot-item">
-                <span class="label">ID</span>
-                <span id="profileRobotId">A1AN-7F3K-9X2P</span>
-              </div>
-              <div class="profile-robot-item">
-                <span class="label">Estado</span>
-                <span>En línea</span>
-              </div>
-              <div class="profile-robot-item">
-                <span class="label">Firmware</span>
-                <span>v2.4.1</span>
-              </div>
-            </div>
-
-            <div class="profile-section">
-              <h2>Información de cuenta</h2>
-              <div class="robot-info-item">
-                <span class="label">Cuenta creada</span>
-                <span class="value">20 Mar 2026</span>
-              </div>
-              <div class="robot-info-item">
-                <span class="label">Último acceso</span>
-                <span class="value">Hoy, 14:30</span>
-              </div>
-              <div class="robot-info-item">
-                <span class="label">Plan</span>
-                <span class="value"><span class="badge badge-info">Estándar</span></span>
-              </div>
-            </div>
           </div>
         </div>
+
       </div>
     </main>
   </div>
@@ -202,48 +225,68 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const session = JSON.parse(localStorage.getItem('a1an_session') || '{}');
+      const firstName = session.firstName || session.name || 'Usuario';
+      const lastName  = session.lastName || '';
+      const fullName  = (firstName + ' ' + lastName).trim();
+      const initials  = ((firstName[0] || '') + (lastName[0] || '')).toUpperCase() || 'U';
 
-      const firstName = document.getElementById('profileFirstName');
-      const lastName = document.getElementById('profileLastName');
-      const email = document.getElementById('profileEmail');
-      const robotId = document.getElementById('profileRobotId');
+      // Big avatar
+      const big = document.getElementById('profileBigAvatar');
+      if (big) big.textContent = initials;
 
-      if (firstName) firstName.value = session.firstName || '';
-      if (lastName) lastName.value = session.lastName || '';
-      if (email) email.value = session.email || '';
-      if (robotId) robotId.textContent = session.robotId || localStorage.getItem('a1an_robot_id') || 'No vinculado';
+      const avatarName  = document.getElementById('profileAvatarName');
+      const avatarEmail = document.getElementById('profileAvatarEmail');
+      if (avatarName)  avatarName.textContent  = fullName;
+      if (avatarEmail) avatarEmail.textContent = session.email || '';
 
-      const profileForm = document.getElementById('profileForm');
-      if (profileForm) {
-        profileForm.addEventListener('submit', (e) => {
-          e.preventDefault();
-          session.firstName = firstName.value.trim();
-          session.lastName = lastName.value.trim();
-          session.email = email.value.trim();
-          localStorage.setItem('a1an_session', JSON.stringify(session));
-          showToast('Datos actualizados correctamente', 'success');
-          populateUserInfo(session);
+      // Robot
+      const robotEl = document.getElementById('profileRobotIdSmall');
+      if (robotEl) robotEl.textContent = session.robotId || localStorage.getItem('a1an_robot_id') || 'No vinculado';
+
+      // Pre-fill form
+      const fnEl   = document.getElementById('profileFirstName');
+      const lnEl   = document.getElementById('profileLastName');
+      const emailEl = document.getElementById('profileEmail');
+      if (fnEl)    fnEl.value    = session.firstName || session.name || '';
+      if (lnEl)    lnEl.value    = session.lastName  || '';
+      if (emailEl) emailEl.value = session.email     || '';
+
+      // Save personal data
+      document.getElementById('profileForm')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        session.firstName = fnEl.value.trim();
+        session.lastName  = lnEl.value.trim();
+        session.email     = emailEl.value.trim();
+        localStorage.setItem('a1an_session', JSON.stringify(session));
+
+        const newFull = (session.firstName + ' ' + session.lastName).trim();
+        const newInit = ((session.firstName[0] || '') + (session.lastName[0] || '')).toUpperCase() || 'U';
+        if (big)       big.textContent       = newInit;
+        if (avatarName)  avatarName.textContent  = newFull;
+        if (avatarEmail) avatarEmail.textContent = session.email;
+        populateUserInfo(session);
+        showToast('Datos actualizados correctamente', 'success');
+      });
+
+      // Change password
+      document.getElementById('passwordForm')?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const newPwd  = document.getElementById('newPassword').value;
+        const confPwd = document.getElementById('confirmNewPassword').value;
+        if (newPwd.length < 6) { showToast('La contraseña debe tener al menos 6 caracteres', 'danger'); return; }
+        if (newPwd !== confPwd) { showToast('Las contraseñas no coinciden', 'danger'); return; }
+        showToast('Contraseña actualizada correctamente', 'success');
+        document.getElementById('passwordForm').reset();
+      });
+
+      // Password toggle buttons
+      document.querySelectorAll('.password-toggle').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const input = document.getElementById(btn.dataset.target);
+          if (!input) return;
+          input.type = input.type === 'password' ? 'text' : 'password';
         });
-      }
-
-      const passwordForm = document.getElementById('passwordForm');
-      if (passwordForm) {
-        passwordForm.addEventListener('submit', (e) => {
-          e.preventDefault();
-          const newPwd = document.getElementById('newPassword').value;
-          const confirmPwd = document.getElementById('confirmNewPassword').value;
-          if (newPwd.length < 6) {
-            showToast('La contraseña debe tener al menos 6 caracteres', 'danger');
-            return;
-          }
-          if (newPwd !== confirmPwd) {
-            showToast('Las contraseñas no coinciden', 'danger');
-            return;
-          }
-          showToast('Contraseña actualizada correctamente', 'success');
-          passwordForm.reset();
-        });
-      }
+      });
     });
   </script>
 </body>

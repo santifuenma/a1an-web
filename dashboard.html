@@ -99,26 +99,35 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
             <span class="topbar-notification-badge"></span>
           </a>
-          <div class="topbar-user">
+          <a href="profile.html" class="topbar-user">
             <div class="topbar-user-avatar" id="topbarAvatar">U</div>
             <span class="topbar-user-name" id="topbarUserName">Usuario</span>
-          </div>
+          </a>
         </div>
       </div>
 
       <div class="page-content">
-        <div class="page-header">
-          <h1>Panel de control</h1>
-          <p>Bienvenido de vuelta. Aquí tienes un resumen del estado de tu robot y tu actividad reciente.</p>
+
+        <!-- === BIENVENIDA === -->
+        <div class="patient-welcome">
+          <div class="patient-welcome-text">
+            <h1 id="welcomeHeading">Buenos días, <span id="welcomeName">Usuario</span> 👋</h1>
+            <p id="welcomeDate">Hoy es un gran día para seguir progresando.</p>
+          </div>
+          <div class="patient-welcome-stat">
+            <span class="patient-streak-number" id="streakCount">5</span>
+            <span class="patient-streak-label">días seguidos activo</span>
+          </div>
         </div>
 
-        <!-- Widgets -->
-        <div class="widgets-grid">
-          <!-- Robot Camera Feed -->
-          <div class="camera-widget grid-camera">
+        <!-- === GRID PRINCIPAL: Cámara + Widgets === -->
+        <div class="dashboard-top">
+
+          <!-- Cámara del robot — ocupa 2 filas en la columna izquierda -->
+          <div class="camera-widget">
             <div class="camera-widget-header">
-              <span class="widget-title">Cámara en vivo</span>
-              <div class="badge badge-success">Live</div>
+              <span class="widget-title">Cámara en vivo — A1AN</span>
+              <div class="badge badge-success">En línea</div>
             </div>
             <div class="video-container">
               <div class="video-feed-sim"></div>
@@ -127,27 +136,20 @@
               <div class="video-overlay">
                 <div class="overlay-top">
                   <div class="rec-indicator"><span class="rec-dot"></span></div>
-                  <div class="camera-id" style="font-size: 0.5rem; padding: 2px 6px;">CAM-01</div>
+                  <div class="camera-id" style="font-size:0.55rem; padding:2px 7px;">CAM-01 · FRONTAL</div>
                 </div>
                 <div class="overlay-bottom">
-                  <div class="timestamp" id="cameraTimestamp" style="font-size: 0.5rem; padding: 2px 6px;">2026-03-23 17:50:20</div>
+                  <div class="timestamp" id="cameraTimestamp" style="font-size:0.55rem; padding:2px 7px;">Cargando...</div>
                 </div>
               </div>
             </div>
-            <div class="camera-actions" style="padding: var(--spacing-3) var(--spacing-4);">
-              <button class="btn btn-sm btn-outline-dark" id="btnCapture" style="padding: 4px 8px; font-size: 0.65rem;">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                Foto
-              </button>
-              <button class="btn btn-sm btn-outline-dark" id="btnRecord" style="padding: 4px 8px; font-size: 0.65rem;">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
-                REC
-              </button>
-              <button class="btn btn-sm btn-primary" style="margin-left: auto; padding: 4px 8px; font-size: 0.65rem;" onclick="location.href='robot.html'">
-                Ver más
-              </button>
+            <div style="padding: 0.6rem 1rem; background: var(--color-white); border-top: 1px solid var(--color-border); display:flex; align-items:center; justify-content:space-between;">
+              <span style="font-size:var(--font-size-xs); color:var(--color-gray);">Vista en tiempo real del robot</span>
+              <a href="robot.html" style="font-size:var(--font-size-xs); color:var(--color-accent); font-weight:600;">Ver control completo →</a>
             </div>
           </div>
+
+          <!-- Widget: Estado del robot -->
           <div class="widget">
             <div class="widget-header">
               <span class="widget-title">Estado del robot</span>
@@ -162,6 +164,7 @@
             <div class="widget-label">Última conexión: hace 5 min</div>
           </div>
 
+          <!-- Widget: Batería -->
           <div class="widget">
             <div class="widget-header">
               <span class="widget-title">Batería</span>
@@ -175,28 +178,7 @@
             </div>
           </div>
 
-          <div class="widget">
-            <div class="widget-header">
-              <span class="widget-title">Conexión</span>
-              <div class="widget-icon widget-icon-secondary">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
-              </div>
-            </div>
-            <div class="widget-value">WiFi</div>
-            <div class="widget-label">Señal estable — Red doméstica</div>
-          </div>
-
-          <div class="widget">
-            <div class="widget-header">
-              <span class="widget-title">Última actividad</span>
-              <div class="widget-icon widget-icon-primary">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-              </div>
-            </div>
-            <div class="widget-value" style="font-size: 1.1rem;">Ejercicio completado</div>
-            <div class="widget-label">Movilidad de hombro — hace 2h</div>
-          </div>
-
+          <!-- Widget: Próximo ejercicio -->
           <div class="widget">
             <div class="widget-header">
               <span class="widget-title">Próximo ejercicio</span>
@@ -204,10 +186,11 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               </div>
             </div>
-            <div class="widget-value" style="font-size: 1.1rem;">Flexión de rodilla</div>
+            <div class="widget-value" style="font-size: 1rem;">Flexión de rodilla</div>
             <div class="widget-label">Hoy a las 16:00</div>
           </div>
 
+          <!-- Widget: Alertas -->
           <div class="widget">
             <div class="widget-header">
               <span class="widget-title">Alertas activas</span>
@@ -218,16 +201,65 @@
             <div class="widget-value" id="alertsCount">3</div>
             <div class="widget-label"><a href="notifications.html" style="color: var(--color-accent); font-weight: 500;">Ver notificaciones</a></div>
           </div>
+
         </div>
 
-
-        <!-- Weekly Activity Chart -->
-        <div class="widget" style="margin-bottom: var(--spacing-8);">
-          <div class="widget-header">
-            <span class="widget-title">Actividad semanal</span>
+        <!-- === PLANIFICACIÓN SEMANAL === -->
+        <div class="weekly-plan-card">
+          <div class="weekly-plan-header">
+            <div>
+              <h2 class="weekly-plan-title">Tu semana de rehabilitación</h2>
+              <p class="weekly-plan-subtitle">Plan personalizado · Semana actual</p>
+            </div>
+            <a href="exercises.html" class="btn btn-sm btn-primary">Ver todos</a>
           </div>
-          <div class="mini-chart" id="weeklyChart"></div>
-          <div class="mini-chart-labels" id="weeklyLabels"></div>
+          <div class="weekly-plan-grid" id="weeklyPlanGrid">
+            <!-- Filled by JS -->
+          </div>
+        </div>
+
+        <!-- === ACCESO RÁPIDO === -->
+        <div class="quick-nav-grid">
+          <a href="exercises.html" class="quick-nav-card">
+            <div class="quick-nav-icon" style="background: linear-gradient(135deg, #53b2b8, #2a5c92);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+            <div class="quick-nav-text">
+              <span class="quick-nav-title">Mis ejercicios</span>
+              <span class="quick-nav-sub">Ver rutinas del día</span>
+            </div>
+            <svg class="quick-nav-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+          <a href="activity.html" class="quick-nav-card">
+            <div class="quick-nav-icon" style="background: linear-gradient(135deg, #10b981, #047857);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+            <div class="quick-nav-text">
+              <span class="quick-nav-title">Mi actividad</span>
+              <span class="quick-nav-sub">Historial y progreso</span>
+            </div>
+            <svg class="quick-nav-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+          <a href="robot.html" class="quick-nav-card">
+            <div class="quick-nav-icon" style="background: linear-gradient(135deg, #1d3253, #2a5c92);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+            </div>
+            <div class="quick-nav-text">
+              <span class="quick-nav-title">Mi robot A1AN</span>
+              <span class="quick-nav-sub">Estado y control</span>
+            </div>
+            <svg class="quick-nav-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+          <a href="notifications.html" class="quick-nav-card">
+            <div class="quick-nav-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            </div>
+            <div class="quick-nav-text">
+              <span class="quick-nav-title">Notificaciones</span>
+              <span class="quick-nav-sub">3 sin leer</span>
+            </div>
+            <svg class="quick-nav-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
         </div>
 
       </div>
