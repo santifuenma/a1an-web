@@ -109,6 +109,28 @@
   border-radius: 0 2px 2px 0;
 }
 
+.sidebar-link-disabled {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-gray);
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+  user-select: none;
+  text-decoration: none;
+}
+
+.sidebar-link-disabled svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
 .sidebar-badge {
   margin-left: auto;
   background: var(--color-accent);
