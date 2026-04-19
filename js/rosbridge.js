@@ -21,6 +21,8 @@ document.addEventListener('DOMContentLoaded', event => {
     document.getElementById('btnMoveLeft'),
     document.getElementById('btnMoveRight'),
     document.getElementById('btnMoveStop'),
+    document.getElementById('btnGoToCoord'),
+    document.getElementById('btnGoToArea'),
   ];
 
   // --- Actualiza el estado visual ---
@@ -113,5 +115,59 @@ document.addEventListener('DOMContentLoaded', event => {
   document.getElementById('btnMoveLeft')    ?.addEventListener('click', () => move( 0,    0.5));
   document.getElementById('btnMoveRight')   ?.addEventListener('click', () => move( 0,   -0.5));
   document.getElementById('btnMoveStop')    ?.addEventListener('click', () => move( 0,    0));
+
+  // --- Coordenadas de áreas predefinidas ---
+  const areas = {
+    'cocina':     { x:  1.5,  y:  2.0  },
+    'sala':       { x: -1.0,  y:  0.5  },
+    'habitacion': { x:  3.0,  y: -1.5  },
+    'pasillo':    { x:  0.5,  y: -0.5  }
+  };
+
+  // --- Enviar goal a Nav2 ---
+  function sendNavGoal(x, y) {
+    const actionClient = new ROSLIB.ActionClient({
+      ros: data.ros,
+      serverName: '/navigate_to_pose',
+      actionName: 'nav2_msgs/action/NavigateToPose'
+    });
+
+    const goal = new ROSLIB.Goal({
+      actionClient: actionClient,
+      goalMessage: {
+        pose: {
+          header: { frame_id: 'map' },
+          pose: {
+            position:    { x: x, y: y, z: 0.0 },
+            orientation: { x: 0.0, y: 0.0, z: 0.0, w: 1.0 }
+          }
+        }
+      }
+    });
+
+    goal.on('result',   (result)   => console.log('Nav2 goal alcanzado:', result));
+    goal.on('feedback', (feedback) => console.log('Nav2 feedback:', feedback));
+
+    goal.send();
+  }
+
+  // --- Navegación por coordenadas ---
+  function goToCoordinates() {
+    if (!data.connected) return;
+    const x = parseFloat(document.getElementById('navCoordX').value) || 0;
+    const y = parseFloat(document.getElementById('navCoordY').value) || 0;
+    sendNavGoal(x, y);
+  }
+
+  // --- Navegación por área ---
+  function goToArea() {
+    if (!data.connected) return;
+    const areaKey = document.getElementById('navAreaSelect').value;
+    const coords  = areas[areaKey];
+    if (coords) sendNavGoal(coords.x, coords.y);
+  }
+
+  document.getElementById('btnGoToCoord')?.addEventListener('click', goToCoordinates);
+  document.getElementById('btnGoToArea') ?.addEventListener('click', goToArea);
 
 });
