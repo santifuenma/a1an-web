@@ -183,10 +183,23 @@ document.addEventListener('DOMContentLoaded', event => {
 
   // --- Detener navegación ---
   function stopNavigation() {
+    if (!data.connected) return;
+
+    // 1. Cancelar la ruta en Nav2 publicando en /nav_cancel
+    const cancelTopic = new ROSLIB.Topic({
+      ros: data.ros,
+      name: '/nav_cancel',
+      messageType: 'std_msgs/msg/Bool'
+    });
+    cancelTopic.publish(new ROSLIB.Message({ data: true }));
+
+    // 2. Enviar velocidad cero para que pare en su posición actual
     move(0, 0);
+
     setNavStatus('Robot detenido', 'stopped');
     setTimeout(() => setNavStatus('', 'hidden'), 3000);
   }
+
 
   document.getElementById('btnGoToCoord')?.addEventListener('click', goToCoordinates);
   document.getElementById('btnGoToArea')?.addEventListener('click', goToArea);
