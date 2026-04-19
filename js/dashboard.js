@@ -3,9 +3,31 @@
    Dashboard & Private Area JS
    ============================================ */
 
+// --- Page Loader ---
+function showPageLoader() {
+  const loader = document.createElement('div');
+  loader.id = 'pageLoader';
+  loader.className = 'page-loader';
+  loader.innerHTML = `
+    <img src="/assets/logo.png" alt="A1AN" class="loader-logo">
+    <div class="loader-spinner"></div>`;
+  document.body.prepend(loader);
+}
+
+function hidePageLoader() {
+  const loader = document.getElementById('pageLoader');
+  if (!loader) return;
+  loader.classList.add('fade-out');
+  setTimeout(() => loader.remove(), 380);
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
+  showPageLoader();
+
   const session = await checkSession();
-  if (!session) return;
+  if (!session) return; // loader stays while redirecting
+
+  hidePageLoader();
 
   const user = session.user;
   populateUserInfo(user);

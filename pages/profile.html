@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -225,63 +225,117 @@
   <script src="/js/supabase-client.js"></script>
   <script src="/js/dashboard.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const session = JSON.parse(localStorage.getItem('a1an_session') || '{}');
-      const firstName = session.firstName || session.name || 'Usuario';
-      const lastName  = session.lastName || '';
-      const fullName  = (firstName + ' ' + lastName).trim();
-      const initials  = ((firstName[0] || '') + (lastName[0] || '')).toUpperCase() || 'U';
+    document.addEventListener('DOMContentLoaded', async () => {
 
-      // Big avatar
-      const big = document.getElementById('profileBigAvatar');
-      if (big) big.textContent = initials;
+      // --- Get session ---
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { window.location.href = '/pages/login.html'; return; }
 
-      const avatarName  = document.getElementById('profileAvatarName');
-      const avatarEmail = document.getElementById('profileAvatarEmail');
-      if (avatarName)  avatarName.textContent  = fullName;
-      if (avatarEmail) avatarEmail.textContent = session.email || '';
+      const user = session.user;
 
-      // Robot
-      const robotEl = document.getElementById('profileRobotIdSmall');
-      if (robotEl) robotEl.textContent = session.robotId || localStorage.getItem('a1an_robot_id') || 'No vinculado';
+      // --- Load profile data from usuarios table ---
+      const { data: profile } = await supabase
+        .from('usuarios')
+        .select('nombre, apellidos, email, created_at')
+        .eq('id', user.id)
+        .single();
 
-      // Pre-fill form
-      const fnEl   = document.getElementById('profileFirstName');
-      const lnEl   = document.getElementById('profileLastName');
+      // --- Load robot from robots table ---
+      const { data: robot } = await supabase
+        .from('robots')
+        .select('codigo_robot')
+        .eq('usuario_id', user.id)
+        .maybeSingle();
+
+      const nombre    = profile?.nombre   || user.user_metadata?.nombre   || user.email.split('@')[0];
+      const apellidos = profile?.apellidos || user.user_metadata?.apellidos || '';
+      const email     = profile?.email     || user.email;
+      const initials  = ((nombre[0] || '') + (apellidos[0] || '')).toUpperCase() || 'U';
+
+      // --- Populate avatar card ---
+      const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+      setEl('profileBigAvatar',  initials);
+      setEl('profileAvatarName', (nombre + ' ' + apellidos).trim());
+      setEl('profileAvatarEmail', email);
+      setEl('profileRobotIdSmall', robot?.codigo_robot || 'No vinculado');
+
+      // --- Miembro desde ---
+      const since = profile?.created_at ? new Date(profile.created_at) : new Date();
+      const sinceEl = document.querySelector('.profile-meta-value');
+      if (sinceEl) sinceEl.textContent = since.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
+
+      // --- Pre-fill form ---
+      const fnEl    = document.getElementById('profileFirstName');
+      const lnEl    = document.getElementById('profileLastName');
       const emailEl = document.getElementById('profileEmail');
-      if (fnEl)    fnEl.value    = session.firstName || session.name || '';
-      if (lnEl)    lnEl.value    = session.lastName  || '';
-      if (emailEl) emailEl.value = session.email     || '';
+      if (fnEl)    fnEl.value    = nombre;
+      if (lnEl)    lnEl.value    = apellidos;
+      if (emailEl) emailEl.value = email;
 
-      // Save personal data
-      document.getElementById('profileForm')?.addEventListener('submit', (e) => {
+      // --- Save personal data ---
+      document.getElementById('profileForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        session.firstName = fnEl.value.trim();
-        session.lastName  = lnEl.value.trim();
-        session.email     = emailEl.value.trim();
-        localStorage.setItem('a1an_session', JSON.stringify(session));
+        const btn = e.target.querySelector('[type="submit"]');
+        btn.textContent = 'Guardando...';
+        btn.disabled = true;
 
-        const newFull = (session.firstName + ' ' + session.lastName).trim();
-        const newInit = ((session.firstName[0] || '') + (session.lastName[0] || '')).toUpperCase() || 'U';
-        if (big)       big.textContent       = newInit;
-        if (avatarName)  avatarName.textContent  = newFull;
-        if (avatarEmail) avatarEmail.textContent = session.email;
-        populateUserInfo(session);
-        showToast('Datos actualizados correctamente', 'success');
+        const newNombre    = fnEl.value.trim();
+        const newApellidos = lnEl.value.trim();
+        const newEmail     = emailEl.value.trim();
+
+        // Update usuarios table
+        const { error: dbErr } = await supabase
+          .from('usuarios')
+          .update({ nombre: newNombre, apellidos: newApellidos, email: newEmail, updated_at: new Date().toISOString() })
+          .eq('id', user.id);
+
+        // Update auth metadata
+        await supabase.auth.updateUser({ data: { nombre: newNombre, apellidos: newApellidos } });
+
+        btn.textContent = 'Guardar cambios';
+        btn.disabled = false;
+
+        if (dbErr) { showToast('Error al guardar: ' + dbErr.message, 'danger'); return; }
+
+        // Update live UI
+        const newFull = (newNombre + ' ' + newApellidos).trim();
+        const newInit = ((newNombre[0] || '') + (newApellidos[0] || '')).toUpperCase() || 'U';
+        setEl('profileBigAvatar',  newInit);
+        setEl('profileAvatarName', newFull);
+        setEl('profileAvatarEmail', newEmail);
+        setEl('sidebarUserName',   newFull);
+        setEl('sidebarAvatar',     newInit);
+        setEl('topbarUserName',    newNombre);
+        setEl('topbarAvatar',      newInit);
+
+        showToast('Perfil actualizado correctamente', 'success');
       });
 
-      // Change password
-      document.getElementById('passwordForm')?.addEventListener('submit', (e) => {
+      // --- Change password ---
+      document.getElementById('passwordForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const btn     = e.target.querySelector('[type="submit"]');
         const newPwd  = document.getElementById('newPassword').value;
         const confPwd = document.getElementById('confirmNewPassword').value;
+
         if (newPwd.length < 6) { showToast('La contraseña debe tener al menos 6 caracteres', 'danger'); return; }
         if (newPwd !== confPwd) { showToast('Las contraseñas no coinciden', 'danger'); return; }
-        showToast('Contraseña actualizada correctamente', 'success');
+
+        btn.textContent = 'Actualizando...';
+        btn.disabled = true;
+
+        const { error } = await supabase.auth.updateUser({ password: newPwd });
+
+        btn.textContent = 'Actualizar contraseña';
+        btn.disabled = false;
+
+        if (error) { showToast('Error: ' + error.message, 'danger'); return; }
+
+        showToast('Contraseña actualizada correctamente ✓', 'success');
         document.getElementById('passwordForm').reset();
       });
 
-      // Password toggle buttons
+      // --- Password toggle ---
       document.querySelectorAll('.password-toggle').forEach(btn => {
         btn.addEventListener('click', () => {
           const input = document.getElementById(btn.dataset.target);
@@ -289,7 +343,9 @@
           input.type = input.type === 'password' ? 'text' : 'password';
         });
       });
+
     });
   </script>
+
 </body>
 </html>
