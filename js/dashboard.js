@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   populateUserInfo(user);
   initSidebar();
   highlightActiveNav();
+  initLogoutModal();
   initRobotLinking(user);
   initPatientWelcome(user);
   initCameraTimestamp();
@@ -130,12 +131,72 @@ function populateUserInfo(user) {
   setInner('topbarAvatar',     initials);
 }
 
+// --- Logout confirmation modal ---
+function initLogoutModal() {
+  // Inject modal HTML once into the page
+  if (!document.getElementById('logoutOverlay')) {
+    const overlay = document.createElement('div');
+    overlay.id  = 'logoutOverlay';
+    overlay.className = 'logout-overlay';
+    overlay.innerHTML = `
+      <div class="logout-modal" role="dialog" aria-modal="true" aria-labelledby="logoutTitle">
+        <div class="logout-modal-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+        </div>
+        <h3 id="logoutTitle">¿Cerrar sesión?</h3>
+        <p>Serás redirigido a la página de inicio de sesión. Asegúrate de haber guardado tu trabajo.</p>
+        <div class="logout-modal-actions">
+          <button class="btn btn-ghost" id="cancelLogoutBtn">Cancelar</button>
+          <button class="btn btn-danger" id="confirmLogoutBtn">Cerrar sesión</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+  }
+
+  const overlay       = document.getElementById('logoutOverlay');
+  const cancelBtn     = document.getElementById('cancelLogoutBtn');
+  const confirmBtn    = document.getElementById('confirmLogoutBtn');
+  const logoutBtn     = document.getElementById('logoutBtn');
+
+  // Open modal
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      overlay.classList.add('active');
+      cancelBtn.focus();
+    });
+  }
+
+  // Close on cancel
+  cancelBtn.addEventListener('click', () => overlay.classList.remove('active'));
+
+  // Close on backdrop click
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) overlay.classList.remove('active');
+  });
+
+  // Close on Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') overlay.classList.remove('active');
+  });
+
+  // Confirm logout
+  confirmBtn.addEventListener('click', async () => {
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Cerrando...';
+    await supabase.auth.signOut();
+    window.location.href = '/pages/login.html?logout=true';
+  });
+}
+
 // --- Sidebar toggle (mobile) ---
 function initSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  const toggle = document.getElementById('sidebarToggle');
-  const overlay = document.getElementById('sidebarOverlay');
-  const logoutBtn = document.getElementById('logoutBtn');
+  const sidebar   = document.getElementById('sidebar');
+  const toggle    = document.getElementById('sidebarToggle');
+  const overlay   = document.getElementById('sidebarOverlay');
 
   if (toggle && sidebar) {
     toggle.addEventListener('click', () => {
@@ -150,14 +211,8 @@ function initSidebar() {
       overlay.classList.remove('active');
     });
   }
-
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', async () => {
-      await supabase.auth.signOut();
-      window.location.href = '/pages/login.html?logout=true';
-    });
-  }
 }
+
 
 // --- Highlight active sidebar link ---
 function highlightActiveNav() {

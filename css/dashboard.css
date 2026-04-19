@@ -1874,3 +1874,112 @@
     padding: var(--spacing-6);
   }
 }
+
+/* ============================================
+   LOGOUT CONFIRMATION MODAL
+   ============================================ */
+.logout-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-base);
+}
+
+.logout-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.logout-modal {
+  background: var(--color-white);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-10) var(--spacing-8);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: var(--shadow-xl);
+  transform: translateY(16px) scale(0.97);
+  transition: transform var(--transition-base);
+}
+
+.logout-overlay.active .logout-modal {
+  transform: translateY(0) scale(1);
+}
+
+.logout-modal-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #fee2e2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--spacing-6);
+  color: var(--color-danger);
+}
+
+.logout-modal-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.logout-modal h3 {
+  font-size: var(--font-size-xl);
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-3);
+}
+
+.logout-modal p {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray);
+  margin-bottom: var(--spacing-8);
+  line-height: 1.6;
+}
+
+.logout-modal-actions {
+  display: flex;
+  gap: var(--spacing-3);
+}
+
+.logout-modal-actions .btn {
+  flex: 1;
+}
+
+.btn-danger {
+  background-color: var(--color-danger);
+  color: var(--color-white);
+}
+
+.btn-danger:hover {
+  background-color: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-ghost {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.btn-ghost:hover {
+  background-color: var(--color-border);
+}
+
+@media (max-width: 480px) {
+  .logout-modal {
+    padding: var(--spacing-8) var(--spacing-6);
+  }
+  .logout-modal-actions {
+    flex-direction: column;
+  }
+}
