@@ -249,18 +249,21 @@ function initRobotLinking(user) {
   const overlay = document.getElementById('robotLinkOverlay');
   if (!overlay) return;
 
-  // Comprobar si el usuario ya tiene robot vinculado en Supabase
-  supabase
-    .from('robots')
-    .select('id')
-    .eq('usuario_id', user.id)
-    .maybeSingle()
-    .then(({ data }) => {
-      if (data) return; // ya tiene robot
-      overlay.classList.add('active');
-      setupRobotLinkHandlers(overlay, user);
-    });
+  // Popup de vinculación desactivado temporalmente
+  // Para reactivarlo, descomentar las líneas siguientes:
+  // supabase
+  //   .from('robots')
+  //   .select('id')
+  //   .eq('usuario_id', user.id)
+  //   .maybeSingle()
+  //   .then(({ data }) => {
+  //     if (data) return;
+  //     overlay.classList.add('active');
+  //     setupRobotLinkHandlers(overlay, user);
+  //   });
+  setupRobotLinkHandlers(overlay, user);
 }
+
 
 function setupRobotLinkHandlers(overlay, user) {
   // Tab switching
