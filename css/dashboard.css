@@ -1963,6 +1963,61 @@
   }
 }
 
+/* Nav status bar */
+.nav-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  background: var(--color-white);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-4) var(--spacing-6);
+  margin-bottom: var(--spacing-8);
+  transition: border-color var(--transition-base), background var(--transition-base);
+}
+
+.nav-status-bar.navigating {
+  border-color: var(--color-accent);
+  background: rgba(83, 178, 184, 0.05);
+}
+
+.nav-status-bar.stopped {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.05);
+}
+
+.nav-status-content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.nav-status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.nav-status-bar.navigating .nav-status-dot {
+  animation: nav-pulse 1.2s ease-in-out infinite;
+}
+
+.nav-status-bar.stopped .nav-status-dot {
+  background: #10b981;
+  animation: none;
+}
+
+@keyframes nav-pulse {
+  0%, 100% { opacity: 1; transform: scale(1);    }
+  50%       { opacity: 0.4; transform: scale(0.75); }
+}
+
 /* ============================================
    ROSBRIDGE CONTROL PANEL
    ============================================ */

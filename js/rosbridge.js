@@ -116,28 +116,46 @@ document.addEventListener('DOMContentLoaded', event => {
   document.getElementById('btnMoveRight')?.addEventListener('click', () => move(0, -0.5));
   document.getElementById('btnMoveStop')?.addEventListener('click', () => move(0, 0));
 
-  // --- Coordenadas de áreas predefinidas ---
+  // --- Barra de estado de navegación ---
+  const navStatusBar  = document.getElementById('navStatusBar');
+  const navStatusText = document.getElementById('navStatusText');
+  const btnGoToCoord  = document.getElementById('btnGoToCoord');
+  const btnGoToArea   = document.getElementById('btnGoToArea');
+  const btnStopNav    = document.getElementById('btnStopNav');
+
+  // Coordenadas de áreas predefinidas
   const areas = {
-    'cocina': { x: 1.5, y: 2.0 },
-    'sala': { x: -1.0, y: 0.5 },
-    'habitacion': { x: 3.0, y: -1.5 },
-    'pasillo': { x: 0.5, y: -0.5 }
+    'cocina':     { x: 6.0,  y: -2.0 },
+    'sala':       { x: 1.0,  y:  1.0 },
+    'habitacion': { x: -6.0, y:  0.0 },
   };
+
+  function setNavStatus(message, state) {
+    // state: 'navigating' | 'stopped' | 'hidden'
+    if (state === 'hidden') {
+      navStatusBar.style.display = 'none';
+      navStatusBar.className = 'nav-status-bar';
+      return;
+    }
+    navStatusBar.style.display = 'flex';
+    navStatusBar.className = 'nav-status-bar ' + state;
+    navStatusText.textContent = message;
+
+    const navigating = state === 'navigating';
+    btnGoToCoord.disabled = navigating || !data.connected;
+    btnGoToArea.disabled  = navigating || !data.connected;
+    btnStopNav.style.display = navigating ? 'inline-flex' : 'none';
+  }
 
   // --- Enviar goal a Nav2 ---
   function sendNavGoal(x, y) {
     if (!data.connected) return;
-
     const topic = new ROSLIB.Topic({
       ros: data.ros,
       name: '/nav_goal',
       messageType: 'std_msgs/msg/Float64MultiArray'
     });
-
-    const message = new ROSLIB.Message({
-      data: [x, y]
-    });
-
+    const message = new ROSLIB.Message({ data: [x, y] });
     topic.publish(message);
     console.log(`Goal enviado: x=${x}, y=${y}`);
   }
@@ -148,17 +166,34 @@ document.addEventListener('DOMContentLoaded', event => {
     const x = parseFloat(document.getElementById('navCoordX').value) || 0;
     const y = parseFloat(document.getElementById('navCoordY').value) || 0;
     sendNavGoal(x, y);
+    setNavStatus(`Robot moviéndose a (${x.toFixed(2)}, ${y.toFixed(2)})`, 'navigating');
   }
 
   // --- Navegación por área ---
   function goToArea() {
     if (!data.connected) return;
-    const areaKey = document.getElementById('navAreaSelect').value;
-    const coords = areas[areaKey];
-    if (coords) sendNavGoal(coords.x, coords.y);
+    const sel    = document.getElementById('navAreaSelect');
+    const areaKey = sel.value;
+    const coords  = areas[areaKey];
+    if (!coords) return;
+    sendNavGoal(coords.x, coords.y);
+    const label = sel.options[sel.selectedIndex].text;
+    setNavStatus(`Robot moviéndose a ${label}`, 'navigating');
+  }
+
+  // --- Detener navegación ---
+  function stopNavigation() {
+    move(0, 0);
+    setNavStatus('Robot detenido', 'stopped');
+    setTimeout(() => setNavStatus('', 'hidden'), 3000);
   }
 
   document.getElementById('btnGoToCoord')?.addEventListener('click', goToCoordinates);
   document.getElementById('btnGoToArea')?.addEventListener('click', goToArea);
+  btnStopNav?.addEventListener('click', stopNavigation);
+
+  // Estado inicial: barra oculta, botón detener oculto
+  if (navStatusBar) navStatusBar.style.display = 'none';
+  if (btnStopNav)   btnStopNav.style.display   = 'none';
 
 });
