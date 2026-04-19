@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -149,60 +149,68 @@
             </div>
           </div>
 
-          <!-- Widget: Estado del robot -->
-          <div class="widget">
-            <div class="widget-header">
-              <span class="widget-title">Estado del robot</span>
-              <div class="widget-icon widget-icon-accent">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+
+          <!-- ===== ROSBridge Control Panel ===== -->
+          <div class="ros-control-panel">
+
+            <!-- Header -->
+            <div class="ros-panel-header">
+              <div class="ros-panel-title">
+                <div class="widget-icon widget-icon-primary">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                </div>
+                <div>
+                  <span class="widget-title" style="font-size: var(--font-size-sm); text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-gray);">Control Manual</span>
+                  <span class="ros-panel-subtitle">TurtleBot · ROSBridge</span>
+                </div>
+              </div>
+              <div class="ros-status" id="rosbridgeStatus">
+                <span class="status-dot offline" id="rosbridgeStatusDot"></span>
+                <span id="rosbridgeStatusText">Desconectado</span>
               </div>
             </div>
-            <div class="widget-value">
-              <span class="status-dot online" id="robotStatusDot"></span>
-              <span id="robotStatusText">En línea</span>
-            </div>
-            <div class="widget-label">Última conexión: hace 5 min</div>
-          </div>
 
-          <!-- Widget: Batería -->
-          <div class="widget">
-            <div class="widget-header">
-              <span class="widget-title">Batería</span>
-              <div class="widget-icon widget-icon-success">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="18" height="12" rx="2" ry="2"/><line x1="23" y1="13" x2="23" y2="11"/></svg>
+            <!-- Connection row -->
+            <div class="ros-connect-row">
+              <input
+                type="text"
+                id="rosbridgeUrl"
+                class="ros-url-input"
+                placeholder="ws://localhost:9090"
+                value="ws://localhost:9090"
+              >
+              <button class="btn btn-primary" id="rosbridgeConnectBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+                Conectar
+              </button>
+            </div>
+
+            <!-- D-Pad -->
+            <div class="ros-dpad">
+              <button class="dpad-btn dpad-up" id="btnMoveForward" disabled title="Adelante">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+              </button>
+              <div class="dpad-middle-row">
+                <button class="dpad-btn dpad-left" id="btnMoveLeft" disabled title="Izquierda">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                </button>
+                <button class="dpad-btn dpad-stop" id="btnMoveStop" disabled title="Parar">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+                </button>
+                <button class="dpad-btn dpad-right" id="btnMoveRight" disabled title="Derecha">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
               </div>
+              <button class="dpad-btn dpad-down" id="btnMoveBackward" disabled title="Atrás">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
             </div>
-            <div class="widget-value" id="batteryValue">78%</div>
-            <div class="battery-bar">
-              <div class="battery-bar-fill high" id="batteryBar" style="width: 78%"></div>
-            </div>
+
+            <p class="ros-hint">Conecta al servidor ROSBridge para habilitar el control manual del robot.</p>
+
           </div>
 
-          <!-- Widget: Próximo ejercicio -->
-          <div class="widget">
-            <div class="widget-header">
-              <span class="widget-title">Próximo ejercicio</span>
-              <div class="widget-icon widget-icon-warning">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              </div>
-            </div>
-            <div class="widget-value" style="font-size: 1rem;">Flexión de rodilla</div>
-            <div class="widget-label">Hoy a las 16:00</div>
-          </div>
 
-          <!-- Widget: Alertas -->
-          <div class="widget">
-            <div class="widget-header">
-              <span class="widget-title">Alertas activas</span>
-              <div class="widget-icon widget-icon-danger">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              </div>
-            </div>
-            <div class="widget-value" id="alertsCount">3</div>
-            <div class="widget-label"><a href="/pages/notifications.html" style="color: var(--color-accent); font-weight: 500;">Ver notificaciones</a></div>
-          </div>
-
-        </div>
 
         <!-- === PLANIFICACIÓN SEMANAL === -->
         <div class="weekly-plan-card">
