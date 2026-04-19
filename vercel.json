@@ -29,7 +29,6 @@
 
   "redirects": [
     { "source": "/bbdd/(.*)", "destination": "/", "permanent": false },
-    { "source": "/bbdd",      "destination": "/", "permanent": false },
-    { "source": "/pages/login", "destination": "/pages/login.html", "permanent": false }
+    { "source": "/bbdd",      "destination": "/", "permanent": false }
   ]
 }
