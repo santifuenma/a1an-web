@@ -11,9 +11,9 @@ document.addEventListener('DOMContentLoaded', event => {
     connected: false
   };
 
-  const connectBtn  = document.getElementById('rosbridgeConnectBtn');
-  const statusDot   = document.getElementById('rosbridgeStatusDot');
-  const statusText  = document.getElementById('rosbridgeStatusText');
+  const connectBtn = document.getElementById('rosbridgeConnectBtn');
+  const statusDot = document.getElementById('rosbridgeStatusDot');
+  const statusText = document.getElementById('rosbridgeStatusText');
   const statusBadge = document.getElementById('rosbridgeStatus');
   const moveButtons = [
     document.getElementById('btnMoveForward'),
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', event => {
   // --- Actualiza el estado visual ---
   function setStatus(state) {
     const isConnected = state === 'connected';
-    const isError     = state === 'error';
+    const isError = state === 'error';
 
     statusDot.className = 'status-dot ' + (isConnected ? 'online' : isError ? 'error' : 'offline');
     statusText.textContent = isConnected ? 'Conectado ✓' : isError ? 'Error de conexión' : 'Desconectado';
@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', event => {
     const iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>`;
     connectBtn.innerHTML = iconSvg + (isConnected ? ' Desconectar' : ' Conectar');
     connectBtn.className = isConnected ? 'btn btn-danger' : 'btn btn-primary';
-    connectBtn.disabled  = false;
+    connectBtn.disabled = false;
   }
 
   // --- Conectar ---
@@ -101,8 +101,8 @@ document.addEventListener('DOMContentLoaded', event => {
         frame_id: 'base_link'
       },
       twist: {
-        linear:  { x: linear_x, y: 0, z: 0 },
-        angular: { x: 0,        y: 0, z: angular_z }
+        linear: { x: linear_x, y: 0, z: 0 },
+        angular: { x: 0, y: 0, z: angular_z }
       }
     });
 
@@ -110,45 +110,36 @@ document.addEventListener('DOMContentLoaded', event => {
   }
 
   // Asociar botones del D-pad
-  document.getElementById('btnMoveForward') ?.addEventListener('click', () => move( 0.2,  0));
-  document.getElementById('btnMoveBackward')?.addEventListener('click', () => move(-0.2,  0));
-  document.getElementById('btnMoveLeft')    ?.addEventListener('click', () => move( 0,    0.5));
-  document.getElementById('btnMoveRight')   ?.addEventListener('click', () => move( 0,   -0.5));
-  document.getElementById('btnMoveStop')    ?.addEventListener('click', () => move( 0,    0));
+  document.getElementById('btnMoveForward')?.addEventListener('click', () => move(0.2, 0));
+  document.getElementById('btnMoveBackward')?.addEventListener('click', () => move(-0.2, 0));
+  document.getElementById('btnMoveLeft')?.addEventListener('click', () => move(0, 0.5));
+  document.getElementById('btnMoveRight')?.addEventListener('click', () => move(0, -0.5));
+  document.getElementById('btnMoveStop')?.addEventListener('click', () => move(0, 0));
 
   // --- Coordenadas de áreas predefinidas ---
   const areas = {
-    'cocina':     { x:  1.5,  y:  2.0  },
-    'sala':       { x: -1.0,  y:  0.5  },
-    'habitacion': { x:  3.0,  y: -1.5  },
-    'pasillo':    { x:  0.5,  y: -0.5  }
+    'cocina': { x: 1.5, y: 2.0 },
+    'sala': { x: -1.0, y: 0.5 },
+    'habitacion': { x: 3.0, y: -1.5 },
+    'pasillo': { x: 0.5, y: -0.5 }
   };
 
   // --- Enviar goal a Nav2 ---
   function sendNavGoal(x, y) {
-    const actionClient = new ROSLIB.ActionClient({
+    if (!data.connected) return;
+
+    const topic = new ROSLIB.Topic({
       ros: data.ros,
-      serverName: '/navigate_to_pose',
-      actionName: 'nav2_msgs/action/NavigateToPose'
+      name: '/nav_goal',
+      messageType: 'std_msgs/msg/Float64MultiArray'
     });
 
-    const goal = new ROSLIB.Goal({
-      actionClient: actionClient,
-      goalMessage: {
-        pose: {
-          header: { frame_id: 'map' },
-          pose: {
-            position:    { x: x, y: y, z: 0.0 },
-            orientation: { x: 0.0, y: 0.0, z: 0.0, w: 1.0 }
-          }
-        }
-      }
+    const message = new ROSLIB.Message({
+      data: [x, y]
     });
 
-    goal.on('result',   (result)   => console.log('Nav2 goal alcanzado:', result));
-    goal.on('feedback', (feedback) => console.log('Nav2 feedback:', feedback));
-
-    goal.send();
+    topic.publish(message);
+    console.log(`Goal enviado: x=${x}, y=${y}`);
   }
 
   // --- Navegación por coordenadas ---
@@ -163,11 +154,11 @@ document.addEventListener('DOMContentLoaded', event => {
   function goToArea() {
     if (!data.connected) return;
     const areaKey = document.getElementById('navAreaSelect').value;
-    const coords  = areas[areaKey];
+    const coords = areas[areaKey];
     if (coords) sendNavGoal(coords.x, coords.y);
   }
 
   document.getElementById('btnGoToCoord')?.addEventListener('click', goToCoordinates);
-  document.getElementById('btnGoToArea') ?.addEventListener('click', goToArea);
+  document.getElementById('btnGoToArea')?.addEventListener('click', goToArea);
 
 });
