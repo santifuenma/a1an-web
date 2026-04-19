@@ -83,4 +83,35 @@ document.addEventListener('DOMContentLoaded', event => {
     }
   });
 
+  // --- Movimiento manual ---
+  function move(linear_x, angular_z) {
+    if (!data.connected) return;
+
+    const topic = new ROSLIB.Topic({
+      ros: data.ros,
+      name: '/cmd_vel',
+      messageType: 'geometry_msgs/msg/TwistStamped'
+    });
+
+    const message = new ROSLIB.Message({
+      header: {
+        stamp: { sec: 0, nanosec: 0 },
+        frame_id: 'base_link'
+      },
+      twist: {
+        linear:  { x: linear_x, y: 0, z: 0 },
+        angular: { x: 0,        y: 0, z: angular_z }
+      }
+    });
+
+    topic.publish(message);
+  }
+
+  // Asociar botones del D-pad
+  document.getElementById('btnMoveForward') ?.addEventListener('click', () => move( 0.2,  0));
+  document.getElementById('btnMoveBackward')?.addEventListener('click', () => move(-0.2,  0));
+  document.getElementById('btnMoveLeft')    ?.addEventListener('click', () => move( 0,    0.5));
+  document.getElementById('btnMoveRight')   ?.addEventListener('click', () => move( 0,   -0.5));
+  document.getElementById('btnMoveStop')    ?.addEventListener('click', () => move( 0,    0));
+
 });
