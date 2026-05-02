@@ -161,6 +161,24 @@
                   <label for="profileEmail">Correo electrónico</label>
                   <input type="email" id="profileEmail" placeholder="tu@email.com">
                 </div>
+                <div class="profile-form-row">
+                  <div class="form-group">
+                    <label for="profileTipoIdent">Tipo Ident.</label>
+                    <select id="profileTipoIdent" style="width: 100%; padding: 0.75rem 1rem; border: var(--border); border-radius: var(--radius-md); background: var(--surface); color: var(--text-primary); font-family: inherit; font-size: 0.95rem;">
+                      <option value="DNI">DNI</option>
+                      <option value="NIE">NIE</option>
+                      <option value="Pasaporte">Pasaporte</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="profileNumIdent">Número Ident.</label>
+                    <input type="text" id="profileNumIdent" placeholder="Tu número">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="profilePhone">Teléfono (Opcional)</label>
+                  <input type="tel" id="profilePhone" placeholder="+34 600 000 000">
+                </div>
                 <div style="display: flex; justify-content: flex-end; margin-top: var(--spacing-4);">
                   <button type="submit" class="btn btn-primary">Guardar cambios</button>
                 </div>
@@ -235,7 +253,7 @@
       // --- Load profile data from usuarios table ---
       const { data: profile } = await supabase
         .from('usuarios')
-        .select('nombre, apellidos, email, created_at')
+        .select('nombre, apellidos, email, created_at, tipo_identificacion, numero_identificacion, telefono')
         .eq('id', user.id)
         .single();
 
@@ -267,9 +285,16 @@
       const fnEl    = document.getElementById('profileFirstName');
       const lnEl    = document.getElementById('profileLastName');
       const emailEl = document.getElementById('profileEmail');
+      const tIdentEl = document.getElementById('profileTipoIdent');
+      const nIdentEl = document.getElementById('profileNumIdent');
+      const phoneEl  = document.getElementById('profilePhone');
+      
       if (fnEl)    fnEl.value    = nombre;
       if (lnEl)    lnEl.value    = apellidos;
       if (emailEl) emailEl.value = email;
+      if (tIdentEl && profile?.tipo_identificacion) tIdentEl.value = profile.tipo_identificacion;
+      if (nIdentEl) nIdentEl.value = profile?.numero_identificacion || '';
+      if (phoneEl)  phoneEl.value  = profile?.telefono || '';
 
       // --- Save personal data ---
       document.getElementById('profileForm')?.addEventListener('submit', async (e) => {
@@ -281,11 +306,22 @@
         const newNombre    = fnEl.value.trim();
         const newApellidos = lnEl.value.trim();
         const newEmail     = emailEl.value.trim();
+        const newTipoIdent = tIdentEl ? tIdentEl.value.trim() : '';
+        const newNumIdent  = nIdentEl ? nIdentEl.value.trim() : '';
+        const newPhone     = phoneEl ? phoneEl.value.trim() : '';
 
         // Update usuarios table
         const { error: dbErr } = await supabase
           .from('usuarios')
-          .update({ nombre: newNombre, apellidos: newApellidos, email: newEmail, updated_at: new Date().toISOString() })
+          .update({ 
+            nombre: newNombre, 
+            apellidos: newApellidos, 
+            email: newEmail, 
+            tipo_identificacion: newTipoIdent, 
+            numero_identificacion: newNumIdent, 
+            telefono: newPhone, 
+            updated_at: new Date().toISOString() 
+          })
           .eq('id', user.id);
 
         // Update auth metadata

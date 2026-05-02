@@ -42,7 +42,6 @@ document.addEventListener('DOMContentLoaded', () => {
     recoverForm.addEventListener('submit', handleRecover);
   }
 
-  // --- Reset password form (paso 2) ---
   const resetForm = document.getElementById('resetForm');
   if (resetForm) {
     resetForm.addEventListener('submit', handleResetPassword);
@@ -58,15 +57,15 @@ async function handleLogin(e) {
   e.preventDefault();
   clearErrors();
 
-  const email    = document.getElementById('email').value.trim();
+  const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
 
   if (!isValidEmail(email)) { showFieldError('email', 'emailError'); return; }
-  if (!password)            { showFieldError('password', 'passwordError'); return; }
+  if (!password) { showFieldError('password', 'passwordError'); return; }
 
   setLoading(true);
   try {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data: authData, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       if (error.message.includes('Invalid login credentials')) {
         showAuthMessage('Correo electrónico o contraseña incorrectos.', 'error');
@@ -77,7 +76,25 @@ async function handleLogin(e) {
       }
       return;
     }
-    window.location.href = '/pages/dashboard.html';
+    if (authData.session) {
+      // paciente: 1, tecnico: 2, doctor: 3
+      const { data: usuario } = await supabase
+        .from('usuarios')
+        .select('tipo_usuario_id')
+        .eq('id', authData.session.user.id)
+        .single();
+
+      if (usuario && usuario.tipo_usuario_id === 3) {
+        // Bloqueo temporal para Doctores (no integrado aun)
+        showAuthMessage('El panel de doctores aún no está disponible (Próximamente).', 'error');
+        await supabase.auth.signOut();
+      } else {
+        // Paciente por defecto
+        window.location.href = '/pages/dashboard.html';
+      }
+    } else {
+      window.location.href = '/pages/dashboard.html';
+    }
   } catch (e) {
     showAuthMessage('Error de conexión. Comprueba tu internet e inténtalo de nuevo.', 'error');
   } finally {
@@ -93,17 +110,26 @@ async function handleRegister(e) {
   e.preventDefault();
   clearErrors();
 
-  const firstName       = document.getElementById('firstName').value.trim();
-  const lastName        = document.getElementById('lastName').value.trim();
-  const email           = document.getElementById('email').value.trim();
-  const password        = document.getElementById('password').value;
+  const firstName = document.getElementById('firstName').value.trim();
+  const lastName = document.getElementById('lastName').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
   const confirmPassword = document.getElementById('confirmPassword').value;
+
+  const tipoUsuarioEl = document.getElementById('tipoUsuario');
+  const tipoUsuarioId = tipoUsuarioEl ? parseInt(tipoUsuarioEl.value) : 1;
+
+  const tipoIdentificacion = document.getElementById('tipoIdentificacion').value;
+  const numeroIdentificacion = document.getElementById('numeroIdentificacion').value.trim();
+  const telefono = document.getElementById('telefono').value.trim();
+
   let valid = true;
 
   if (!firstName) { showFieldError('firstName', 'firstNameError'); valid = false; }
-  if (!lastName)  { showFieldError('lastName',  'lastNameError');  valid = false; }
-  if (!isValidEmail(email))        { showFieldError('email',           'emailError');           valid = false; }
-  if (password.length < 6)         { showFieldError('password',        'passwordError');        valid = false; }
+  if (!lastName) { showFieldError('lastName', 'lastNameError'); valid = false; }
+  if (!numeroIdentificacion) { showFieldError('numeroIdentificacion', 'numeroIdentificacionError'); valid = false; }
+  if (!isValidEmail(email)) { showFieldError('email', 'emailError'); valid = false; }
+  if (password.length < 6) { showFieldError('password', 'passwordError'); valid = false; }
   if (password !== confirmPassword) { showFieldError('confirmPassword', 'confirmPasswordError'); valid = false; }
   if (!valid) return;
 
@@ -112,7 +138,7 @@ async function handleRegister(e) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { nombre: firstName, apellidos: lastName } }
+      options: { data: { nombre: firstName, apellidos: lastName, tipo_usuario_id: tipoUsuarioId, tipo_identificacion: tipoIdentificacion, numero_identificacion: numeroIdentificacion, telefono: telefono } }
     });
 
     if (error) {
@@ -128,6 +154,15 @@ async function handleRegister(e) {
 
     // Confirmación de email desactivada → sesión inmediata
     if (data.session) {
+      await supabase.from('usuarios')
+        .update({
+          tipo_usuario_id: tipoUsuarioId,
+          tipo_identificacion: tipoIdentificacion,
+          numero_identificacion: numeroIdentificacion,
+          telefono: telefono
+        })
+        .eq('id', data.session.user.id);
+
       window.location.href = '/pages/dashboard.html';
     } else {
       showAuthMessage('¡Cuenta creada! Revisa tu correo para confirmar tu cuenta antes de iniciar sesión.', 'success');
@@ -176,16 +211,16 @@ function showResetStep() {
   if (step2) step2.style.display = 'block';
 
   const h1 = document.querySelector('.auth-header h1');
-  const p  = document.querySelector('.auth-header p');
+  const p = document.querySelector('.auth-header p');
   if (h1) h1.textContent = 'Nueva contraseña';
-  if (p)  p.textContent  = 'Introduce tu nueva contraseña para terminar.';
+  if (p) p.textContent = 'Introduce tu nueva contraseña para terminar.';
 }
 
 async function handleResetPassword(e) {
   e.preventDefault();
   clearErrors();
 
-  const newPassword        = document.getElementById('newPassword').value;
+  const newPassword = document.getElementById('newPassword').value;
   const confirmNewPassword = document.getElementById('confirmNewPassword').value;
 
   if (newPassword.length < 6) {
@@ -234,14 +269,14 @@ function showAuthMessage(text, type) {
   const msg = document.getElementById('authMessage');
   if (!msg) return;
   msg.textContent = text;
-  msg.className   = 'auth-message show ' + type;
+  msg.className = 'auth-message show ' + type;
 }
 
 function showUrlMessage() {
   const p = new URLSearchParams(window.location.search);
   if (p.get('registered') === 'true') showAuthMessage('¡Cuenta creada correctamente! Ahora puedes iniciar sesión.', 'success');
-  if (p.get('logout')     === 'true') showAuthMessage('Has cerrado sesión correctamente.', 'success');
-  if (p.get('reset')      === 'true') showAuthMessage('Contraseña actualizada. Inicia sesión con tu nueva contraseña.', 'success');
+  if (p.get('logout') === 'true') showAuthMessage('Has cerrado sesión correctamente.', 'success');
+  if (p.get('reset') === 'true') showAuthMessage('Contraseña actualizada. Inicia sesión con tu nueva contraseña.', 'success');
 }
 
 function setLoading(isLoading) {
@@ -260,7 +295,7 @@ function showToast(message, type = '') {
   const toast = document.getElementById('toast');
   if (!toast) return;
   toast.textContent = message;
-  toast.className   = 'toast show';
+  toast.className = 'toast show';
   if (type) toast.classList.add('toast-' + type);
   setTimeout(() => { toast.classList.remove('show'); }, 3500);
 }
