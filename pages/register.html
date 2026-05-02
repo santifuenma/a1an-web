@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,10 +9,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/styles.css?v=2">
-  <link rel="stylesheet" href="/css/auth.css?v=2">
-  <link rel="stylesheet" href="/css/responsive.css?v=2">
+  <link rel="stylesheet" href="/css/styles.css?v=3">
+  <link rel="stylesheet" href="/css/auth.css?v=3">
+  <link rel="stylesheet" href="/css/responsive.css?v=3">
 </head>
+
 <body>
 
   <div class="auth-page">
@@ -45,9 +47,11 @@
         <div class="auth-row">
           <div class="form-group">
             <label for="tipoUsuario">Tipo de cuenta</label>
-            <select id="tipoUsuario" class="form-select" required style="width: 100%; padding: 0.75rem 1rem; border: var(--border); border-radius: var(--radius-md); background: var(--surface); color: var(--text-primary); font-family: inherit; font-size: 0.95rem; transition: border-color var(--transition), box-shadow var(--transition);">
+            <select id="tipoUsuario" class="form-select" required
+              style="width: 100%; padding: 0.75rem 1rem; border: var(--border); border-radius: var(--radius-md); background: var(--surface); color: var(--text-primary); font-family: inherit; font-size: 0.95rem; transition: border-color var(--transition), box-shadow var(--transition);">
               <option value="1">Paciente</option>
-              <option value="2" disabled>Doctor (Próximamente)</option>
+              <option value="2" disabled>Técnico (Próximamente)</option>
+              <option value="3" disabled>Doctor (Próximamente)</option>
             </select>
           </div>
           <div class="form-group">
@@ -59,14 +63,15 @@
         <div class="auth-row">
           <div class="form-group">
             <label for="tipoIdentificacion">Documento (Opcional)</label>
-            <select id="tipoIdentificacion" class="form-select" style="width: 100%; padding: 0.75rem 1rem; border: var(--border); border-radius: var(--radius-md); background: var(--surface); color: var(--text-primary); font-family: inherit; font-size: 0.95rem; transition: border-color var(--transition), box-shadow var(--transition);">
+            <select id="tipoIdentificacion" class="form-select"
+              style="width: 100%; padding: 0.75rem 1rem; border: var(--border); border-radius: var(--radius-md); background: var(--surface); color: var(--text-primary); font-family: inherit; font-size: 0.95rem; transition: border-color var(--transition), box-shadow var(--transition);">
               <option value="DNI">DNI</option>
               <option value="NIE">NIE</option>
               <option value="Pasaporte">Pasaporte</option>
             </select>
           </div>
           <div class="form-group">
-            <label for="numeroIdentificacion">Número Ident.</label>
+            <label for="numeroIdentificacion">Número Ident. (Opcional)</label>
             <input type="text" id="numeroIdentificacion" placeholder="p. ej. 12345678A">
           </div>
         </div>
@@ -83,7 +88,11 @@
             <div class="password-toggle">
               <input type="password" id="password" placeholder="Mínimo 6 caracteres" required>
               <button type="button" class="toggle-password" aria-label="Mostrar contraseña">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
               </button>
             </div>
             <span class="form-error" id="passwordError">Mínimo 6 caracteres</span>
@@ -93,7 +102,11 @@
             <div class="password-toggle">
               <input type="password" id="confirmPassword" placeholder="Confirma tu clave" required>
               <button type="button" class="toggle-password" aria-label="Mostrar contraseña">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
               </button>
             </div>
             <span class="form-error" id="confirmPasswordError">Las claves no coinciden</span>
@@ -114,4 +127,5 @@
   <script src="/js/supabase-client.js"></script>
   <script src="/js/auth.js"></script>
 </body>
+
 </html>
