@@ -123,12 +123,124 @@ document.addEventListener('DOMContentLoaded', event => {
   const btnGoToArea   = document.getElementById('btnGoToArea');
   const btnStopNav    = document.getElementById('btnStopNav');
 
-  // Coordenadas de áreas predefinidas
-  const areas = {
-    'cocina':     { x: 6.0,  y: -2.0 },
-    'sala':       { x: 1.0,  y:  1.0 },
-    'habitacion': { x: -6.0, y:  0.0 },
-  };
+  // Coordenadas de áreas dinámicas
+  let areas = {};
+
+  async function loadAreas() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    const { data, error } = await supabase
+      .from('areas_mapa')
+      .select('*')
+      .eq('usuario_id', session.user.id)
+      .eq('activa', true);
+      
+    if (error) {
+      console.error('Error cargando areas:', error);
+      return;
+    }
+    
+    areas = {};
+    const sel = document.getElementById('navAreaSelect');
+    if (sel) {
+      sel.innerHTML = '';
+      if (data && data.length > 0) {
+        data.forEach(area => {
+          areas[area.id] = { x: area.coordenada_x, y: area.coordenada_y };
+          const opt = document.createElement('option');
+          opt.value = area.id;
+          opt.textContent = area.nombre;
+          sel.appendChild(opt);
+        });
+      } else {
+        sel.innerHTML = '<option disabled selected>Sin áreas guardadas</option>';
+      }
+    }
+  }
+
+  async function saveArea() {
+    const name = document.getElementById('newAreaName')?.value.trim();
+    const x = parseFloat(document.getElementById('newAreaX')?.value);
+    const y = parseFloat(document.getElementById('newAreaY')?.value);
+    
+    if (!name) {
+      alert('Introduce un nombre para guardar el área.');
+      return;
+    }
+    if (isNaN(x) || isNaN(y)) {
+      alert('Las coordenadas X e Y deben ser válidas.');
+      return;
+    }
+    
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    
+    const btn = document.getElementById('btnSaveArea');
+    const oldText = btn.textContent;
+    btn.textContent = 'Guardando...';
+    btn.disabled = true;
+    
+    const { error } = await supabase.from('areas_mapa').insert({
+      usuario_id: session.user.id,
+      nombre: name,
+      coordenada_x: x,
+      coordenada_y: y,
+      activa: true
+    });
+    
+    btn.textContent = oldText;
+    btn.disabled = false;
+    
+    if (error) {
+      console.error('Error guardando el área:', error);
+      alert('Error al guardar. Inténtalo de nuevo.');
+    } else {
+      document.getElementById('newAreaName').value = '';
+      loadAreas();
+    }
+  }
+
+  async function deleteArea() {
+    const sel = document.getElementById('navAreaSelect');
+    const areaId = sel.value;
+    if (!areaId) return;
+
+    // Check if it's the disabled option
+    if (sel.options[sel.selectedIndex].disabled) return;
+
+    const areaName = sel.options[sel.selectedIndex].text;
+    const confirmDelete = window.confirm(`¿Estás seguro de que deseas borrar el área "${areaName}"? Esta acción no se puede deshacer.`);
+    
+    if (!confirmDelete) return;
+
+    const btn = document.getElementById('btnDeleteArea');
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '...';
+    }
+
+    const { error } = await supabase
+      .from('areas_mapa')
+      .delete()
+      .eq('id', areaId);
+      // If soft delete is preferred: .update({ activa: false }).eq('id', areaId)
+      // I will use delete() as it matches "borrar de forma definitiva" (delete permanently)
+
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg> Borrar`;
+    }
+
+    if (error) {
+      console.error('Error al borrar el área:', error);
+      alert('Error al borrar el área. Inténtalo de nuevo.');
+    } else {
+      loadAreas();
+    }
+  }
+
+  // Cargar áreas al inicio
+  loadAreas();
 
   function setNavStatus(message, state) {
     // state: 'navigating' | 'stopped' | 'hidden'
@@ -203,6 +315,8 @@ document.addEventListener('DOMContentLoaded', event => {
 
   document.getElementById('btnGoToCoord')?.addEventListener('click', goToCoordinates);
   document.getElementById('btnGoToArea')?.addEventListener('click', goToArea);
+  document.getElementById('btnSaveArea')?.addEventListener('click', saveArea);
+  document.getElementById('btnDeleteArea')?.addEventListener('click', deleteArea);
   btnStopNav?.addEventListener('click', stopNavigation);
 
   // Estado inicial: barra oculta, botón detener oculto
