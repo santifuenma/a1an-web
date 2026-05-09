@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initPatientWelcome(user);
   initCameraTimestamp();
   initWeeklyPlan();
+  initDashboardData(user);
 });
 
 // --- Patient Welcome ---
@@ -350,6 +351,172 @@ function initWeeklyChart() {
     label.textContent = day;
     labels.appendChild(label);
   });
+}
+
+/**
+ * Inicializa la carga de datos dinámicos del dashboard.
+ * Obtiene información desde Supabase para el usuario autenticado.
+ *
+ * @param {Object} user Usuario autenticado de Supabase
+ */
+async function initDashboardData(user) {
+  console.log('Cargando dashboard para:', user.id);
+
+  await loadRobotSummary(user.id);
+  await loadNextExercise(user.id);
+  await loadActiveAlerts(user.id);
+
+  setInterval(async () => {
+    await loadRobotSummary(user.id);
+    await loadNextExercise(user.id);
+    await loadActiveAlerts(user.id);
+  }, 5000);
+}
+
+/**
+ * Carga el robot asociado al usuario desde Supabase.
+ * Usa los datos guardados en base de datos para mostrar
+ * el estado y la batería en el dashboard.
+ *
+ * @param {string} userId Identificador del usuario autenticado
+ */
+async function loadRobotSummary(userId) {
+  const { data: robot, error } = await supabase
+    .from('robots')
+    .select('estado, bateria_actual, ultima_conexion')
+    .eq('usuario_id', userId)
+    .maybeSingle();
+
+  console.log('Robot encontrado:', robot);
+  console.log('Error robot:', error);
+
+  if (!robot) return;
+  const batteryText = document.getElementById('dashboardBatteryText');
+  const batteryBar = document.getElementById('dashboardBatteryBar');
+  const statusText = document.getElementById('mockStatusText');
+  const statusDot = document.getElementById('mockStatusDot');
+
+  const battery = robot.bateria_actual ?? 0;
+
+    console.log('batteryText:', batteryText);
+    console.log('batteryBar:', batteryBar);
+    console.log('statusText:', statusText);
+    console.log('battery:', battery);
+
+  if(batteryText) {
+    batteryText.textContent = battery + '%';
+  }
+
+  if (batteryBar) {
+    batteryBar.style.width = battery + '%';
+
+    batteryBar.classList.remove('high', 'medium', 'low');
+
+    if (battery >= 60) {
+      batteryBar.classList.add('high');
+    } else if (battery >= 30) {
+      batteryBar.classList.add('medium');
+    } else {
+      batteryBar.classList.add('low');
+    }
+  }
+
+  if(statusText) {
+    if (robot.estado === 'activo') {
+      statusText.textContent = 'En línea';
+      if(statusDot){
+        statusDot.classList.remove('offline');
+        statusDot.classList.add('online');
+      }
+    } else {
+      statusText.textContent = 'Fuera de línea';
+      if(statusDot){
+        statusDot.classList.remove('online');
+        statusDot.classList.add('offline');
+      }
+    }
+  }
+}
+
+/**
+ * Carga el próximo ejercicio asociado a la rutina activa del usuario.
+ * Obtiene la información desde Supabase y actualiza
+ * las tarjetas del dashboard con el ejercicio programado.
+ *
+ * @param {string} userId Identificador del usuario autenticado
+ */
+
+async function loadNextExercise(userId) {
+  const { data, error } = await supabase
+    .from('rutinas')
+    .select(`
+      id,
+      nombre,
+      rutina_ejercicios (
+        dia_semana,
+        hora_programada,
+        ejercicios (
+          titulo,
+          descripcion
+        )
+      )
+    `)
+    .eq('usuario_id', userId)
+    .eq('activa', true)
+    .maybeSingle();
+
+  console.log('Próximo ejercicio:', data);
+  console.log('Error próximo ejercicio:', error);
+
+  const nextExerciseTitle = document.getElementById('dashboardNextExerciseTitle');
+  const nextExerciseLabel = document.getElementById('dashboardNextExerciseLabel');
+
+  if (!data) return;
+
+  const nextExercise = data.rutina_ejercicios[0];
+
+  if (!nextExercise) return;
+
+  if(nextExercise.ejercicios.titulo) {
+    nextExerciseTitle.textContent = nextExercise.ejercicios.titulo;
+  }
+
+  if(nextExercise.hora_programada) {
+    nextExerciseLabel.textContent = nextExercise.dia_semana + " · " + nextExercise.hora_programada + "h";
+  } else {
+    nextExerciseLabel.textContent = "Programado para el " + nextExercise.dia_semana;
+  }
+}
+
+/**
+ * Carga el número de alertas activas del usuario.
+ * Obtiene las notificaciones no leídas desde Supabase
+ * y actualiza el contador del dashboard.
+ *
+ * @param {string} userId Identificador del usuario autenticado
+ */
+async function loadActiveAlerts(userId){
+  const { data, error } = await supabase
+    .from('notificaciones')
+    .select(`
+      usuario_id,
+      tipo,
+      leida
+    `)
+    .eq('usuario_id', userId)
+    .eq('tipo', 'alerta')
+    .eq('leida', false)
+
+  console.log('Alertas:', data);
+  console.log('Error:', error);
+
+  const alertsCount = document.getElementById('dashboardAlertsCount');
+
+  if (!data) return;
+
+  if (alertsCount) {
+    alertsCount.textContent = data.length;
+  }
 }
 
 // --- Helpers ---
