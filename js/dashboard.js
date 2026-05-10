@@ -38,23 +38,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   initPatientWelcome(user);
   initCameraTimestamp();
   initWeeklyPlan();
+  initDashboardData(user);
 });
 
 // --- Patient Welcome ---
 function initPatientWelcome(user) {
-  const meta      = user.user_metadata || {};
+  const meta = user.user_metadata || {};
   const firstName = meta.nombre || user.email.split('@')[0];
-  const heading   = document.getElementById('welcomeHeading');
-  const dateEl    = document.getElementById('welcomeDate');
+  const heading = document.getElementById('welcomeHeading');
+  const dateEl = document.getElementById('welcomeDate');
 
   if (heading) {
-    const hour     = new Date().getHours();
+    const hour = new Date().getHours();
     const greeting = hour < 12 ? 'Buenos días' : hour < 20 ? 'Buenas tardes' : 'Buenas noches';
     heading.innerHTML = `${greeting}, <span id="welcomeName">${firstName}</span> 👋`;
   }
 
   if (dateEl) {
-    const now     = new Date();
+    const now = new Date();
     const options = { weekday: 'long', day: 'numeric', month: 'long' };
     dateEl.textContent = `Hoy es ${now.toLocaleDateString('es-ES', options)}. ¡Sigue adelante con tu rehabilitación!`;
   }
@@ -67,8 +68,8 @@ function initCameraTimestamp() {
   const update = () => {
     const n = new Date();
     ts.textContent =
-      [n.getFullYear(), String(n.getMonth()+1).padStart(2,'0'), String(n.getDate()).padStart(2,'0')].join('-') + ' ' +
-      [String(n.getHours()).padStart(2,'0'), String(n.getMinutes()).padStart(2,'0'), String(n.getSeconds()).padStart(2,'0')].join(':');
+      [n.getFullYear(), String(n.getMonth() + 1).padStart(2, '0'), String(n.getDate()).padStart(2, '0')].join('-') + ' ' +
+      [String(n.getHours()).padStart(2, '0'), String(n.getMinutes()).padStart(2, '0'), String(n.getSeconds()).padStart(2, '0')].join(':');
   };
   update();
   setInterval(update, 1000);
@@ -88,7 +89,7 @@ function initWeeklyPlan() {
 
   const schedule = [
     { name: 'Movilidad de hombro', color: '#53b2b8', bg: 'rgba(83,178,184,0.12)', icon: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>' },
-    { name: 'Flexión de rodilla',  color: '#2a5c92', bg: 'rgba(42,92,146,0.12)',  icon: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>' },
+    { name: 'Flexión de rodilla', color: '#2a5c92', bg: 'rgba(42,92,146,0.12)', icon: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>' },
     { name: 'Extensión de cadera', color: '#10b981', bg: 'rgba(16,185,129,0.12)', icon: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>' },
     null,  // Descanso
     { name: 'Balance y equilibrio', color: '#7c3aed', bg: 'rgba(124,58,237,0.12)', icon: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>' },
@@ -137,20 +138,20 @@ async function checkSession() {
 
 // --- Populate user info across sidebar and topbar ---
 function populateUserInfo(user) {
-  const meta      = user.user_metadata || {};
-  const firstName = meta.nombre    || user.email.split('@')[0];
-  const lastName  = meta.apellidos || '';
-  const fullName  = (firstName + ' ' + lastName).trim();
-  const initials  = ((firstName[0] || '') + (lastName[0] || '')).toUpperCase() || 'U';
-  const email     = user.email || '';
+  const meta = user.user_metadata || {};
+  const firstName = meta.nombre || user.email.split('@')[0];
+  const lastName = meta.apellidos || '';
+  const fullName = (firstName + ' ' + lastName).trim();
+  const initials = ((firstName[0] || '') + (lastName[0] || '')).toUpperCase() || 'U';
+  const email = user.email || '';
 
   const setInner = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
 
-  setInner('sidebarUserName',  fullName);
+  setInner('sidebarUserName', fullName);
   setInner('sidebarUserEmail', email);
-  setInner('sidebarAvatar',    initials);
-  setInner('topbarUserName',   firstName);
-  setInner('topbarAvatar',     initials);
+  setInner('sidebarAvatar', initials);
+  setInner('topbarUserName', firstName);
+  setInner('topbarAvatar', initials);
 }
 
 // --- Logout confirmation modal ---
@@ -158,7 +159,7 @@ function initLogoutModal() {
   // Inject modal HTML once into the page
   if (!document.getElementById('logoutOverlay')) {
     const overlay = document.createElement('div');
-    overlay.id  = 'logoutOverlay';
+    overlay.id = 'logoutOverlay';
     overlay.className = 'logout-overlay';
     overlay.innerHTML = `
       <div class="logout-modal" role="dialog" aria-modal="true" aria-labelledby="logoutTitle">
@@ -179,10 +180,10 @@ function initLogoutModal() {
     document.body.appendChild(overlay);
   }
 
-  const overlay       = document.getElementById('logoutOverlay');
-  const cancelBtn     = document.getElementById('cancelLogoutBtn');
-  const confirmBtn    = document.getElementById('confirmLogoutBtn');
-  const logoutBtn     = document.getElementById('logoutBtn');
+  const overlay = document.getElementById('logoutOverlay');
+  const cancelBtn = document.getElementById('cancelLogoutBtn');
+  const confirmBtn = document.getElementById('confirmLogoutBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
 
   // Open modal
   if (logoutBtn) {
@@ -216,9 +217,9 @@ function initLogoutModal() {
 
 // --- Sidebar toggle (mobile) ---
 function initSidebar() {
-  const sidebar   = document.getElementById('sidebar');
-  const toggle    = document.getElementById('sidebarToggle');
-  const overlay   = document.getElementById('sidebarOverlay');
+  const sidebar = document.getElementById('sidebar');
+  const toggle = document.getElementById('sidebarToggle');
+  const overlay = document.getElementById('sidebarOverlay');
 
   if (toggle && sidebar) {
     toggle.addEventListener('click', () => {
@@ -278,7 +279,7 @@ function setupRobotLinkHandlers(overlay, user) {
   });
 
   // Link by ID
-  const linkBtn    = document.getElementById('linkRobotBtn');
+  const linkBtn = document.getElementById('linkRobotBtn');
   const robotInput = document.getElementById('robotIdInput');
   if (linkBtn) {
     linkBtn.addEventListener('click', () => {
@@ -349,6 +350,277 @@ function initWeeklyChart() {
     const label = document.createElement('span');
     label.textContent = day;
     labels.appendChild(label);
+  });
+}
+
+/**
+ * Inicializa la carga de datos dinámicos del dashboard.
+ * Obtiene información desde Supabase para el usuario autenticado.
+ *
+ * @param {Object} user Usuario autenticado de Supabase
+ */
+async function initDashboardData(user) {
+  console.log('Cargando dashboard para:', user.id);
+
+  await loadRobotSummary(user.id);
+  await loadNextExercise(user.id);
+  await loadActiveAlerts(user.id);
+  await loadWeeklyPlan(user.id);
+
+  setInterval(async () => {
+    await loadRobotSummary(user.id);
+    await loadNextExercise(user.id);
+    await loadActiveAlerts(user.id);
+    await loadWeeklyPlan(user.id);
+  }, 5000);
+}
+
+/**
+ * Carga el robot asociado al usuario desde Supabase.
+ * Usa los datos guardados en base de datos para mostrar
+ * el estado y la batería en el dashboard.
+ *
+ * @param {string} userId Identificador del usuario autenticado
+ */
+async function loadRobotSummary(userId) {
+  const { data: robot, error } = await supabase
+    .from('robots')
+    .select('estado, bateria_actual, ultima_conexion')
+    .eq('usuario_id', userId)
+    .maybeSingle();
+
+  console.log('Robot encontrado:', robot);
+  console.log('Error robot:', error);
+
+  if (!robot) return;
+  const batteryText = document.getElementById('dashboardBatteryText');
+  const batteryBar = document.getElementById('dashboardBatteryBar');
+  const statusText = document.getElementById('mockStatusText');
+  const statusDot = document.getElementById('mockStatusDot');
+
+  const battery = robot.bateria_actual ?? 0;
+
+  console.log('batteryText:', batteryText);
+  console.log('batteryBar:', batteryBar);
+  console.log('statusText:', statusText);
+  console.log('battery:', battery);
+
+  if (batteryText) {
+    batteryText.textContent = battery + '%';
+  }
+
+  if (batteryBar) {
+    batteryBar.style.width = battery + '%';
+
+    batteryBar.classList.remove('high', 'medium', 'low');
+
+    if (battery >= 60) {
+      batteryBar.classList.add('high');
+    } else if (battery >= 30) {
+      batteryBar.classList.add('medium');
+    } else {
+      batteryBar.classList.add('low');
+    }
+  }
+
+  if (statusText) {
+    if (robot.estado === 'activo') {
+      statusText.textContent = 'En línea';
+      if (statusDot) {
+        statusDot.classList.remove('offline');
+        statusDot.classList.add('online');
+      }
+    } else {
+      statusText.textContent = 'Fuera de línea';
+      if (statusDot) {
+        statusDot.classList.remove('online');
+        statusDot.classList.add('offline');
+      }
+    }
+  }
+}
+
+/**
+ * Carga el próximo ejercicio asociado a la rutina activa del usuario.
+ * Obtiene la información desde Supabase y actualiza
+ * las tarjetas del dashboard con el ejercicio programado.
+ *
+ * @param {string} userId Identificador del usuario autenticado
+ */
+
+async function loadNextExercise(userId) {
+  const { data, error } = await supabase
+    .from('rutinas')
+    .select(`
+      id,
+      nombre,
+      rutina_ejercicios (
+        dia_semana,
+        hora_programada,
+        ejercicios (
+          titulo,
+          descripcion
+        )
+      )
+    `)
+    .eq('usuario_id', userId)
+    .eq('activa', true)
+    .maybeSingle();
+
+  console.log('Próximo ejercicio:', data);
+  console.log('Error próximo ejercicio:', error);
+
+  const nextExerciseTitle = document.getElementById('dashboardNextExerciseTitle');
+  const nextExerciseLabel = document.getElementById('dashboardNextExerciseLabel');
+
+  if (!data) return;
+
+  const nextExercise = data.rutina_ejercicios[0];
+
+  if (!nextExercise) return;
+
+  if (nextExercise.ejercicios.titulo) {
+    nextExerciseTitle.textContent = nextExercise.ejercicios.titulo;
+  }
+
+  if (nextExercise.hora_programada) {
+    nextExerciseLabel.textContent = nextExercise.dia_semana + " · " + nextExercise.hora_programada + "h";
+  } else {
+    nextExerciseLabel.textContent = "Programado para el " + nextExercise.dia_semana;
+  }
+}
+
+/**
+ * Carga el número de alertas activas del usuario.
+ * Obtiene las notificaciones no leídas desde Supabase
+ * y actualiza el contador del dashboard.
+ *
+ * @param {string} userId Identificador del usuario autenticado
+ */
+async function loadActiveAlerts(userId) {
+  const { data, error } = await supabase
+    .from('notificaciones')
+    .select(`
+      usuario_id,
+      tipo,
+      leida
+    `)
+    .eq('usuario_id', userId)
+    .eq('tipo', 'alerta')
+    .eq('leida', false)
+
+  console.log('Alertas:', data);
+  console.log('Error:', error);
+
+  const alertsCount = document.getElementById('dashboardAlertsCount');
+
+  if (!data) return;
+
+  if (alertsCount) {
+    alertsCount.textContent = data.length;
+  }
+}
+
+/**
+ * Carga la planificación semanal de la rutina activa del usuario.
+ * Obtiene los ejercicios programados desde Supabase y actualiza
+ * el calendario semanal del dashboard.
+ *
+ * @param {string} userId Identificador del usuario autenticado
+ */
+async function loadWeeklyPlan(userId) {
+  const { data, error } = await supabase
+    .from('rutinas')
+    .select(`
+      id,
+      nombre,
+      rutina_ejercicios (
+        dia_semana,
+        hora_programada,
+        ejercicios (
+          titulo
+        )
+      )
+    `)
+    .eq('usuario_id', userId)
+    .eq('activa', true)
+    .maybeSingle();
+
+  console.log('Plan semanal:', data);
+  console.log('Error plan semanal:', error);
+
+  const weeklyPlan = document.getElementById('weeklyPlanGrid');
+
+  if (!weeklyPlan) return;
+  if (!data) return;
+
+  const days = [
+    { key: 'Lunes', label: 'LUN' },
+    { key: 'Martes', label: 'MAR' },
+    { key: 'Miércoles', label: 'MIÉ' },
+    { key: 'Jueves', label: 'JUE' },
+    { key: 'Viernes', label: 'VIE' },
+    { key: 'Sábado', label: 'SÁB' },
+    { key: 'Domingo', label: 'DOM' }
+  ];
+
+  weeklyPlan.innerHTML = '';
+
+  const today = new Date();
+  const currentDayIndex = (today.getDay() + 6) % 7;
+
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - currentDayIndex);
+
+  days.forEach((day, index) => {
+    const exerciseForDay = data.rutina_ejercicios.find(
+      item => item.dia_semana === day.key
+    );
+
+    const isToday = index === currentDayIndex;
+
+    const date = new Date(monday);
+    date.setDate(monday.getDate() + index);
+    const dayNumber = date.getDate();
+
+    const card = document.createElement('div');
+    card.className = 'week-day-card';
+
+    if (isToday) {
+      card.classList.add('today');
+    }
+
+    if (!exerciseForDay) {
+      card.classList.add('rest');
+    }
+
+    card.innerHTML = `
+      <div class="week-day-name">${day.label}</div>
+      <div class="week-day-num">${dayNumber}</div>
+      <div class="week-day-exercise-icon" style="background: ${
+        exerciseForDay ? 'rgba(83, 178, 184, 0.15)' : 'rgba(0,0,0,0.05)'
+      }; color: ${
+        exerciseForDay ? 'var(--color-accent)' : 'var(--color-gray)'
+      };">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          ${
+            exerciseForDay
+              ? '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />'
+              : '<circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/>'
+          }
+        </svg>
+      </div>
+      <div class="week-day-exercise-name">
+        ${
+          exerciseForDay
+            ? exerciseForDay.ejercicios.titulo
+            : 'Descanso'
+        }
+      </div>
+    `;
+
+    weeklyPlan.appendChild(card);
   });
 }
 
