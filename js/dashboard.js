@@ -4,8 +4,17 @@
    ============================================ */
 
 const CAMERA_TOPIC = '/camera/image_raw';
-// Si abres la web desde otro equipo, define window.A1AN_CAMERA_STREAM_HOST = 'http://IP_DEL_ROBOT:8081' antes de cargar este script.
-const CAMERA_STREAM_HOST = window.A1AN_CAMERA_STREAM_HOST || 'http://localhost:8081';
+
+// CONFIGURACIÓN DE CÁMARA (Para producción/Vercel):
+// 1. Si usas la web desde Vercel (HTTPS), el navegador bloqueará el stream HTTP de ROS.
+// 2. Para solucionarlo, debes usar una IP pública con HTTPS o configurar un túnel/web proxy.
+// 3. Puedes forzar la IP del robot definiendo window.A1AN_CAMERA_STREAM_HOST.
+
+const CAMERA_STREAM_HOST = window.A1AN_CAMERA_STREAM_HOST || 
+                          (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' 
+                           ? `http://${window.location.hostname}:8081` 
+                           : 'http://localhost:8081');
+                           
 const CAMERA_STREAM_URL = window.A1AN_CAMERA_STREAM_URL || `${CAMERA_STREAM_HOST}/stream?topic=${CAMERA_TOPIC}&type=mjpeg`;
 
 // --- Page Loader ---
@@ -93,6 +102,9 @@ function initCameraFeed() {
   const statusBadge = document.getElementById('cameraStatusBadge');
   if (!img || !container) return;
 
+  let retryCount = 0;
+  const MAX_RETRIES = 5;
+
   const setCameraState = (state) => {
     const unavailable = state === 'error';
     container.classList.toggle('camera-unavailable', unavailable);
@@ -100,13 +112,37 @@ function initCameraFeed() {
     if (!statusBadge) return;
     statusBadge.className = 'badge ' + (unavailable ? 'badge-danger' : state === 'loading' ? 'badge-warning' : 'badge-success');
     statusBadge.textContent = unavailable ? 'Sin señal' : state === 'loading' ? 'Conectando' : 'En línea';
+    
+    if (unavailable) {
+      console.warn("Cámara: Sin señal en " + CAMERA_STREAM_URL);
+    }
   };
 
-  img.addEventListener('load', () => setCameraState('online'));
-  img.addEventListener('error', () => setCameraState('error'));
+  img.addEventListener('load', () => {
+    retryCount = 0;
+    setCameraState('online');
+  });
+
+  img.addEventListener('error', () => {
+    if (retryCount < MAX_RETRIES) {
+      retryCount++;
+      console.log(`Reintentando conexión con cámara (${retryCount}/${MAX_RETRIES})...`);
+      setTimeout(updateCameraFeed, 2000);
+    } else {
+      setCameraState('error');
+    }
+  });
 
   setCameraState('loading');
   updateCameraFeed();
+
+  // Reintento periódico si se pierde la señal
+  setInterval(() => {
+    if (container.classList.contains('camera-unavailable')) {
+      retryCount = 0;
+      updateCameraFeed();
+    }
+  }, 10000);
 }
 
 window.updateCameraFeed = updateCameraFeed;
