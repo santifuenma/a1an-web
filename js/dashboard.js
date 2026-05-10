@@ -4,8 +4,8 @@
    ============================================ */
 
 const CAMERA_TOPIC = '/camera/image_raw';
-// Si abres la web desde otro equipo, define window.A1AN_CAMERA_STREAM_HOST = 'http://IP_DEL_ROBOT:8080' antes de cargar este script.
-const CAMERA_STREAM_HOST = window.A1AN_CAMERA_STREAM_HOST || 'http://localhost:8080';
+// Si abres la web desde otro equipo, define window.A1AN_CAMERA_STREAM_HOST = 'http://IP_DEL_ROBOT:8081' antes de cargar este script.
+const CAMERA_STREAM_HOST = window.A1AN_CAMERA_STREAM_HOST || 'http://localhost:8081';
 const CAMERA_STREAM_URL = window.A1AN_CAMERA_STREAM_URL || `${CAMERA_STREAM_HOST}/stream?topic=${CAMERA_TOPIC}&type=mjpeg`;
 
 // --- Page Loader ---

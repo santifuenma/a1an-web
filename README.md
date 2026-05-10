@@ -130,14 +130,14 @@ ros2 launch rosbridge_server rosbridge_websocket_launch.xml
 ```bash
 cd ~/turtlebot3_ws
 source install/setup.bash
-ros2 run web_video_server web_video_server
+ros2 run web_video_server web_video_server --ros-args -p port:=8081
 ```
 
 Comprobación directa del stream:
 
 ```text
-http://localhost:8080/snapshot?topic=/camera/image_raw
-http://localhost:8080/stream?topic=/camera/image_raw&type=mjpeg
+http://localhost:8081/snapshot?topic=/camera/image_raw
+http://localhost:8081/stream?topic=/camera/image_raw&type=mjpeg
 ```
 
 Después se puede servir la web desde la raíz del repositorio:
@@ -156,7 +156,7 @@ Si se accede desde otro equipo de la misma red, `localhost` apunta al equipo del
 
 ```text
 Web:        http://IP_DEL_PC_WEB:8000/pages/dashboard.html
-Cámara:     http://IP_DEL_PC_ROS:8080/stream?topic=/camera/image_raw&type=mjpeg
+Cámara:     http://IP_DEL_PC_ROS:8081/stream?topic=/camera/image_raw&type=mjpeg
 ROSBridge:  ws://IP_DEL_PC_ROS:9090
 ```
 
