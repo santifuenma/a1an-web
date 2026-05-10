@@ -332,9 +332,15 @@
             <div class="nav-tab-content active" id="tab-manual">
               <div class="ros-control-panel" style="box-shadow:none; border:none; padding:1.5rem; height: 100%;">
                 <div class="ros-panel-header" style="margin-bottom:0px;">
-                  <div class="ros-status" id="rosbridgeStatus" style="display: none;">
+                  <div class="ros-panel-title">
+                    <div>
+                      <strong style="font-size:0.85rem; color:var(--color-primary); text-transform:uppercase; letter-spacing:0.05em;">Control Manual</strong>
+                      <span class="ros-panel-subtitle">TurtleBot · ROSBridge</span>
+                    </div>
+                  </div>
+                  <div class="ros-status" id="rosbridgeStatus">
                     <span class="status-dot offline" id="rosbridgeStatusDot"></span>
-                    <span id="rosbridgeStatusText" style="font-size:0.85rem">Desconectado</span>
+                    <span id="rosbridgeStatusText">Desconectado</span>
                   </div>
                 </div>
                 <div class="ros-connect-row" style="margin-bottom:1.5rem;">

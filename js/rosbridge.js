@@ -29,6 +29,17 @@ document.addEventListener('DOMContentLoaded', event => {
   const mapCanvas = document.getElementById('rosMapCanvas');
 
   let mapTopic = null;
+  let poseTopic = null;
+
+  // --- RViz-style map state ---
+  let mapInfo = null;      // { width, height, resolution, origin }
+  let mapImageData = null; // off-screen ImageData
+  let robotPose = null;    // { x, y, theta } in map frame (meters)
+  let mapScale = 1;        // current zoom
+  let mapOffsetX = 0;      // pan offset in canvas px
+  let mapOffsetY = 0;
+  let isPanning = false;
+  let panStart = { x: 0, y: 0 };
 
   // --- Actualiza el estado visual ---
   function setStatus(state) {
@@ -39,7 +50,7 @@ document.addEventListener('DOMContentLoaded', event => {
     statusText.textContent = isConnected ? 'Conectado ✓' : isError ? 'Error de conexión' : 'Desconectado';
     statusBadge.classList.toggle('connected', isConnected);
 
-    // Habilitar / deshabilitar botones de movimiento
+    // Habilitar / deshabilitar botones
     moveButtons.forEach(btn => { if (btn) btn.disabled = !isConnected; });
 
     // Cambiar el botón entre Conectar / Desconectar
@@ -67,11 +78,13 @@ document.addEventListener('DOMContentLoaded', event => {
       console.log('ROSBridge error:', error);
       data.connected = false;
       setStatus('error');
+      drawMapDisconnectedOverlay();
     });
 
     data.ros.on('close', () => {
       data.connected = false;
       setStatus('disconnected');
+      drawMapDisconnectedOverlay();
     });
   }
 
@@ -248,26 +261,9 @@ document.addEventListener('DOMContentLoaded', event => {
   // Cargar áreas al inicio
   loadAreas();
 
-  function setNavStatus(message, state) {
-    // state: 'navigating' | 'stopped' | 'hidden'
-    if (state === 'hidden') {
-      navStatusBar.style.display = 'none';
-      navStatusBar.className = 'nav-status-bar';
-      return;
-    }
-    navStatusBar.style.display = 'flex';
-    navStatusBar.className = 'nav-status-bar ' + state;
-    navStatusText.textContent = message;
-
-    const navigating = state === 'navigating';
-    btnGoToCoord.disabled = navigating || !data.connected;
-    btnGoToArea.disabled = navigating || !data.connected;
-    btnStopNav.style.display = navigating ? 'inline-flex' : 'none';
-  }
-
   // --- Enviar goal a Nav2 ---
   function sendNavGoal(x, y) {
-    if (!data.connected) return;
+    if (!data.ros) return;
     const topic = new ROSLIB.Topic({
       ros: data.ros,
       name: '/nav_goal',
@@ -280,117 +276,352 @@ document.addEventListener('DOMContentLoaded', event => {
 
   // --- Navegación por coordenadas ---
   function goToCoordinates() {
-    if (!data.connected) return;
     const x = parseFloat(document.getElementById('navCoordX').value) || 0;
     const y = parseFloat(document.getElementById('navCoordY').value) || 0;
     sendNavGoal(x, y);
-    setNavStatus(`Robot moviéndose a (${x.toFixed(2)}, ${y.toFixed(2)})`, 'navigating');
   }
 
   // --- Navegación por área ---
   function goToArea() {
-    if (!data.connected) return;
     const sel = document.getElementById('navAreaSelect');
     const areaKey = sel.value;
     const coords = areas[areaKey];
-    if (!coords) return;
-    sendNavGoal(coords.x, coords.y);
-    const label = sel.options[sel.selectedIndex].text;
-    setNavStatus(`Robot moviéndose a ${label}`, 'navigating');
+    if (coords) {
+      sendNavGoal(coords.x, coords.y);
+    }
   }
 
   // --- Detener navegación ---
   function stopNavigation() {
-    if (!data.connected) return;
-
-    // 1. Cancelar la ruta en Nav2 publicando en /nav_cancel
     const cancelTopic = new ROSLIB.Topic({
       ros: data.ros,
       name: '/nav_cancel',
       messageType: 'std_msgs/msg/Bool'
     });
     cancelTopic.publish(new ROSLIB.Message({ data: true }));
+    move(0, 0); // Parar motores por si acaso
+  }
 
-    // 2. Enviar velocidad cero para que pare en su posición actual
-    move(0, 0);
+  // ============================================================
+  //  RViz-style map renderer
+  // ============================================================
 
-    setNavStatus('Robot detenido', 'stopped');
-    setTimeout(() => setNavStatus('', 'hidden'), 3000);
+  /**
+   * Convierte los datos de OccupancyGrid a un ImageData off-screen
+   * con la paleta de colores de RViz.
+   */
+  function buildMapImage(message) {
+    const width = message.info.width;
+    const height = message.info.height;
+    const imgData = new ImageData(width, height);
+
+    for (let row = 0; row < height; row++) {
+      for (let col = 0; col < width; col++) {
+        const idx = row * width + col;
+        const flippedRow = height - row - 1;   // ROS: Y hacia arriba
+        const px = (flippedRow * width + col) * 4;
+        const v = message.data[idx];
+
+        if (v === 0) {
+          // Espacio libre — blanco ligeramente cálido (como RViz)
+          imgData.data[px] = 242;
+          imgData.data[px + 1] = 242;
+          imgData.data[px + 2] = 242;
+        } else if (v === 100) {
+          // Obstáculo — azul-noche oscuro (como RViz)
+          imgData.data[px] = 18;
+          imgData.data[px + 1] = 18;
+          imgData.data[px + 2] = 38;
+        } else {
+          // Desconocido — gris medio
+          imgData.data[px] = 100;
+          imgData.data[px + 1] = 110;
+          imgData.data[px + 2] = 120;
+        }
+        imgData.data[px + 3] = 255;
+      }
+    }
+    return imgData;
   }
 
   /**
- * Dibuja el OccupancyGrid recibido desde ROS2
- * dentro del canvas del mapa.
- *
- * @param {Object} message Mensaje nav_msgs/msg/OccupancyGrid
- */
-  function drawOccupancyGrid(message) {
+   * Redibuja el canvas completo: imagen del mapa + cuadrícula + robot.
+   */
+  function redrawMap() {
+    if (!mapCanvas || !mapImageData || !mapInfo) return;
 
-    if (!mapCanvas) return;
+    const container = mapCanvas.parentElement;
+    const cw = container.clientWidth || 600;
+    const ch = container.clientHeight || 420;
+
+    mapCanvas.width = cw;
+    mapCanvas.height = ch;
 
     const ctx = mapCanvas.getContext('2d');
 
-    const width = message.info.width;
-    const height = message.info.height;
+    // Fondo oscuro estilo RViz
+    ctx.fillStyle = '#1a1d2e';
+    ctx.fillRect(0, 0, cw, ch);
 
-    mapCanvas.width = width;
-    mapCanvas.height = height;
+    const res = mapInfo.resolution;   // metres/pixel
+    const mw = mapInfo.width;
+    const mh = mapInfo.height;
+    const ox = mapInfo.origin.position.x;  // map origin in metres
+    const oy = mapInfo.origin.position.y;
 
-    const imageData = ctx.createImageData(width, height);
+    // Escala base: encajar el mapa en el canvas
+    const baseScale = Math.min(cw / mw, ch / mh) * 0.9;
+    const totalScale = baseScale * mapScale;
 
-    for (let y = 0; y < height; y++) {
+    // Centro del canvas como punto de referencia para el pan
+    const drawX = (cw - mw * totalScale) / 2 + mapOffsetX;
+    const drawY = (ch - mh * totalScale) / 2 + mapOffsetY;
 
-      for (let x = 0; x < width; x++) {
+    // ----- Dibujar imagen del mapa -----
+    const offscreen = document.createElement('canvas');
+    offscreen.width = mw;
+    offscreen.height = mh;
+    offscreen.getContext('2d').putImageData(mapImageData, 0, 0);
 
-        const mapIndex = y * width + x;
+    ctx.save();
+    ctx.translate(drawX, drawY);
+    ctx.scale(totalScale, totalScale);
+    ctx.drawImage(offscreen, 0, 0);
+    ctx.restore();
 
-        // Invertir eje Y para alinearlo con ROS
-        const canvasY = height - y - 1;
+    // ----- Cuadrícula de coordenadas (cada metro) -----
+    drawGrid(ctx, totalScale, drawX, drawY, mw, mh, res, ox, oy, cw, ch);
 
-        const pixelIndex = (canvasY * width + x) * 4;
-
-        const value = message.data[mapIndex];
-
-        let color = 150;
-
-        if (value === 0) {
-          color = 255;
-        }
-        else if (value === 100) {
-          color = 0;
-        }
-
-        imageData.data[pixelIndex] = color;
-        imageData.data[pixelIndex + 1] = color;
-        imageData.data[pixelIndex + 2] = color;
-        imageData.data[pixelIndex + 3] = 255;
-      }
+    // ----- Robot -----
+    if (robotPose) {
+      // Convertir posición en metros a píxeles del canvas
+      const rx = (robotPose.x - ox) / res;
+      const ry = mh - (robotPose.y - oy) / res;  // Y invertido
+      const cx = drawX + rx * totalScale;
+      const cy = drawY + ry * totalScale;
+      drawRobot(ctx, cx, cy, robotPose.theta, totalScale * res);
     }
 
-    ctx.putImageData(imageData, 0, 0);
-
-    mapCanvas.style.width = '100%';
-    mapCanvas.style.height = '100%';
+    // ----- Leyenda -----
+    drawLegend(ctx, cw, ch);
   }
 
   /**
- * Se suscribe al topic /map para recibir
- * el OccupancyGrid publicado por ROS2.
- */
-  function subscribeToMap() {
+   * Dibuja la cuadrícula RViz (líneas cada metro + etiquetas).
+   */
+  function drawGrid(ctx, scale, drawX, drawY, mw, mh, res, ox, oy, cw, ch) {
+    const gridSpacingM = 1;  // 1 metro
+    const gridSpacingPx = gridSpacingM / res;  // en píxeles del mapa
 
+    ctx.save();
+    ctx.strokeStyle = 'rgba(100, 180, 255, 0.18)';
+    ctx.lineWidth = 0.5;
+    ctx.setLineDash([4, 4]);
+    ctx.font = '10px Inter, sans-serif';
+    ctx.fillStyle = 'rgba(120, 200, 255, 0.7)';
+
+    // Líneas verticales (X constante)
+    const startXm = Math.ceil(ox / gridSpacingM) * gridSpacingM;
+    for (let xm = startXm; xm < ox + mw * res; xm += gridSpacingM) {
+      const px = drawX + ((xm - ox) / res) * scale;
+      if (px < 0 || px > cw) continue;
+      ctx.beginPath();
+      ctx.moveTo(px, 0);
+      ctx.lineTo(px, ch);
+      ctx.stroke();
+      // Etiqueta
+      if (Math.abs(xm) > 0.01 || xm === 0) {
+        ctx.fillText(xm.toFixed(0) + 'm', px + 2, ch - 6);
+      }
+    }
+
+    // Líneas horizontales (Y constante en ROS → invertido en canvas)
+    const startYm = Math.ceil(oy / gridSpacingM) * gridSpacingM;
+    for (let ym = startYm; ym < oy + mh * res; ym += gridSpacingM) {
+      const py = drawY + (mh - (ym - oy) / res) * scale;
+      if (py < 0 || py > ch) continue;
+      ctx.beginPath();
+      ctx.moveTo(0, py);
+      ctx.lineTo(cw, py);
+      ctx.stroke();
+      ctx.fillText(ym.toFixed(0) + 'm', 4, py - 3);
+    }
+
+    ctx.restore();
+  }
+
+  /**
+   * Dibuja el robot como un círculo con flecha de orientación (estilo RViz).
+   */
+  function drawRobot(ctx, cx, cy, theta, displayRadius) {
+    const r = Math.max(12, Math.min(displayRadius * 18, 28));
+
+    ctx.save();
+    ctx.translate(cx, cy);
+
+    // Sombra
+    ctx.shadowColor = 'rgba(0, 220, 255, 0.6)';
+    ctx.shadowBlur = 14;
+
+    // Círculo exterior (halo cian)
+    ctx.beginPath();
+    ctx.arc(0, 0, r + 4, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(0, 220, 255, 0.35)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Círculo del cuerpo
+    ctx.beginPath();
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
+    const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, r);
+    grad.addColorStop(0, '#00e5ff');
+    grad.addColorStop(0.6, '#0066cc');
+    grad.addColorStop(1, '#003366');
+    ctx.fillStyle = grad;
+    ctx.fill();
+    ctx.strokeStyle = '#00e5ff';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Flecha de orientación
+    ctx.rotate(-theta);  // theta en ROS es CCW, canvas es CW
+    ctx.beginPath();
+    ctx.moveTo(r * 0.9, 0);
+    ctx.lineTo(-r * 0.5, r * 0.4);
+    ctx.lineTo(-r * 0.5, -r * 0.4);
+    ctx.closePath();
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    ctx.restore();
+  }
+
+  /**
+   * Leyenda compacta en esquina.
+   */
+  function drawLegend(ctx, cw, ch) {
+    ctx.save();
+    ctx.font = '10px Inter, sans-serif';
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.fillRect(cw - 110, ch - 48, 106, 44);
+
+    const items = [
+      { color: '#f2f2f2', label: 'Libre' },
+      { color: '#12121e', label: 'Obstáculo' },
+      { color: '#646e78', label: 'Desconocido' },
+    ];
+    items.forEach((item, i) => {
+      ctx.fillStyle = item.color;
+      ctx.fillRect(cw - 106, ch - 44 + i * 13, 10, 10);
+      ctx.fillStyle = '#ccddee';
+      ctx.fillText(item.label, cw - 92, ch - 35 + i * 13);
+    });
+    ctx.restore();
+  }
+
+  /**
+   * Inicializa pan & zoom en el canvas del mapa.
+   */
+  function initMapInteraction() {
+    if (!mapCanvas) return;
+
+    // Zoom con rueda
+    mapCanvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const factor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
+      mapScale = Math.max(0.3, Math.min(mapScale * factor, 8));
+      redrawMap();
+    }, { passive: false });
+
+    // Pan con drag
+    mapCanvas.addEventListener('mousedown', (e) => {
+      isPanning = true;
+      panStart = { x: e.clientX - mapOffsetX, y: e.clientY - mapOffsetY };
+      mapCanvas.style.cursor = 'grabbing';
+    });
+    window.addEventListener('mousemove', (e) => {
+      if (!isPanning) return;
+      mapOffsetX = e.clientX - panStart.x;
+      mapOffsetY = e.clientY - panStart.y;
+      redrawMap();
+    });
+    window.addEventListener('mouseup', () => {
+      isPanning = false;
+      if (mapCanvas) mapCanvas.style.cursor = 'grab';
+    });
+
+    mapCanvas.style.cursor = 'grab';
+  }
+
+  /**
+   * Dibuja un overlay semitransparente cuando la conexión se pierde.
+   */
+  function drawMapDisconnectedOverlay() {
+    if (!mapCanvas) return;
+    const ctx = mapCanvas.getContext('2d');
+    const cw = mapCanvas.width || mapCanvas.parentElement.clientWidth || 600;
+    const ch = mapCanvas.height || mapCanvas.parentElement.clientHeight || 420;
+
+    // Oscurecer el mapa actual
+    ctx.fillStyle = 'rgba(10, 10, 20, 0.72)';
+    ctx.fillRect(0, 0, cw, ch);
+
+    // Icono y texto
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(255,100,100,0.9)';
+    ctx.font = 'bold 15px Inter, sans-serif';
+    ctx.fillText('⚠ Conexión perdida', cw / 2, ch / 2 - 14);
+    ctx.fillStyle = 'rgba(200,200,200,0.7)';
+    ctx.font = '12px Inter, sans-serif';
+    ctx.fillText('Reconecta al ROSBridge para continuar', cw / 2, ch / 2 + 10);
+    ctx.restore();
+  }
+
+  /**
+   * Procesa el OccupancyGrid y construye el ImageData.
+   *
+   * @param {Object} message Mensaje nav_msgs/msg/OccupancyGrid
+   */
+  function drawOccupancyGrid(message) {
+    if (!mapCanvas) return;
+
+    mapInfo = message.info;
+    mapImageData = buildMapImage(message);
+    redrawMap();
+  }
+
+  /**
+   * Se suscribe a /map y a /amcl_pose para recibir el mapa y la posición del robot.
+   */
+  function subscribeToMap() {
     mapTopic = new ROSLIB.Topic({
       ros: data.ros,
       name: '/map',
       messageType: 'nav_msgs/msg/OccupancyGrid'
     });
-
     mapTopic.subscribe((message) => {
-
-      console.log('Mapa recibido');
-
+      console.log('Mapa recibido:', message.info.width, 'x', message.info.height);
       drawOccupancyGrid(message);
     });
+
+    // Suscripción a la pose del robot (AMCL o similar)
+    poseTopic = new ROSLIB.Topic({
+      ros: data.ros,
+      name: '/amcl_pose',
+      messageType: 'geometry_msgs/msg/PoseWithCovarianceStamped'
+    });
+    poseTopic.subscribe((msg) => {
+      const p = msg.pose.pose;
+      // Calcular yaw desde quaternion
+      const q = p.orientation;
+      const theta = Math.atan2(2 * (q.w * q.z + q.x * q.y), 1 - 2 * (q.y * q.y + q.z * q.z));
+      robotPose = { x: p.position.x, y: p.position.y, theta };
+      redrawMap();
+    });
+
+    initMapInteraction();
   }
 
   document.getElementById('btnGoToCoord')?.addEventListener('click', goToCoordinates);
@@ -399,8 +630,6 @@ document.addEventListener('DOMContentLoaded', event => {
   document.getElementById('btnDeleteArea')?.addEventListener('click', deleteArea);
   btnStopNav?.addEventListener('click', stopNavigation);
 
-  // Estado inicial: barra oculta, botón detener oculto
-  if (navStatusBar) navStatusBar.style.display = 'none';
-  if (btnStopNav) btnStopNav.style.display = 'none';
-
+  // Estado inicial: botón detener visible (o manejado por CSS)
+  if (btnStopNav) btnStopNav.style.display = 'inline-flex';
 });
