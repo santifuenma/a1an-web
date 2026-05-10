@@ -201,10 +201,11 @@
           <div class="camera-widget">
             <div class="camera-widget-header">
               <span class="widget-title">Cámara en vivo — A1AN</span>
-              <div class="badge badge-success">En línea</div>
+              <div class="badge badge-success" id="cameraStatusBadge">Conectando</div>
             </div>
-            <div class="video-container">
-              <div class="video-feed-sim"></div>
+            <div class="video-container" id="divCamera">
+              <img id="cameraFeed" class="camera-feed" src="http://localhost:8080/stream?topic=/camera/image_raw&type=mjpeg" alt="Vista en directo de la cámara del robot">
+              <div class="camera-error" id="cameraError">Cámara no disponible</div>
               <div class="video-noise"></div>
               <div class="video-scanline"></div>
               <div class="video-overlay">
