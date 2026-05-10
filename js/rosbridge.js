@@ -25,6 +25,11 @@ document.addEventListener('DOMContentLoaded', event => {
     document.getElementById('btnGoToArea'),
   ];
 
+  const mapContainer = document.getElementById('rosMapContainer');
+  const mapCanvas = document.getElementById('rosMapCanvas');
+
+  let mapTopic = null;
+
   // --- Actualiza el estado visual ---
   function setStatus(state) {
     const isConnected = state === 'connected';
@@ -55,6 +60,7 @@ document.addEventListener('DOMContentLoaded', event => {
     data.ros.on('connection', () => {
       data.connected = true;
       setStatus('connected');
+      subscribeToMap();
     });
 
     data.ros.on('error', (error) => {
@@ -117,11 +123,11 @@ document.addEventListener('DOMContentLoaded', event => {
   document.getElementById('btnMoveStop')?.addEventListener('click', () => move(0, 0));
 
   // --- Barra de estado de navegación ---
-  const navStatusBar  = document.getElementById('navStatusBar');
+  const navStatusBar = document.getElementById('navStatusBar');
   const navStatusText = document.getElementById('navStatusText');
-  const btnGoToCoord  = document.getElementById('btnGoToCoord');
-  const btnGoToArea   = document.getElementById('btnGoToArea');
-  const btnStopNav    = document.getElementById('btnStopNav');
+  const btnGoToCoord = document.getElementById('btnGoToCoord');
+  const btnGoToArea = document.getElementById('btnGoToArea');
+  const btnStopNav = document.getElementById('btnStopNav');
 
   // Coordenadas de áreas dinámicas
   let areas = {};
@@ -134,12 +140,12 @@ document.addEventListener('DOMContentLoaded', event => {
       .select('*')
       .eq('usuario_id', session.user.id)
       .eq('activa', true);
-      
+
     if (error) {
       console.error('Error cargando areas:', error);
       return;
     }
-    
+
     areas = {};
     const sel = document.getElementById('navAreaSelect');
     if (sel) {
@@ -162,7 +168,7 @@ document.addEventListener('DOMContentLoaded', event => {
     const name = document.getElementById('newAreaName')?.value.trim();
     const x = parseFloat(document.getElementById('newAreaX')?.value);
     const y = parseFloat(document.getElementById('newAreaY')?.value);
-    
+
     if (!name) {
       alert('Introduce un nombre para guardar el área.');
       return;
@@ -171,15 +177,15 @@ document.addEventListener('DOMContentLoaded', event => {
       alert('Las coordenadas X e Y deben ser válidas.');
       return;
     }
-    
+
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
-    
+
     const btn = document.getElementById('btnSaveArea');
     const oldText = btn.textContent;
     btn.textContent = 'Guardando...';
     btn.disabled = true;
-    
+
     const { error } = await supabase.from('areas_mapa').insert({
       usuario_id: session.user.id,
       nombre: name,
@@ -187,10 +193,10 @@ document.addEventListener('DOMContentLoaded', event => {
       coordenada_y: y,
       activa: true
     });
-    
+
     btn.textContent = oldText;
     btn.disabled = false;
-    
+
     if (error) {
       console.error('Error guardando el área:', error);
       alert('Error al guardar. Inténtalo de nuevo.');
@@ -210,7 +216,7 @@ document.addEventListener('DOMContentLoaded', event => {
 
     const areaName = sel.options[sel.selectedIndex].text;
     const confirmDelete = window.confirm(`¿Estás seguro de que deseas borrar el área "${areaName}"? Esta acción no se puede deshacer.`);
-    
+
     if (!confirmDelete) return;
 
     const btn = document.getElementById('btnDeleteArea');
@@ -223,8 +229,8 @@ document.addEventListener('DOMContentLoaded', event => {
       .from('areas_mapa')
       .delete()
       .eq('id', areaId);
-      // If soft delete is preferred: .update({ activa: false }).eq('id', areaId)
-      // I will use delete() as it matches "borrar de forma definitiva" (delete permanently)
+    // If soft delete is preferred: .update({ activa: false }).eq('id', areaId)
+    // I will use delete() as it matches "borrar de forma definitiva" (delete permanently)
 
     if (btn) {
       btn.disabled = false;
@@ -255,7 +261,7 @@ document.addEventListener('DOMContentLoaded', event => {
 
     const navigating = state === 'navigating';
     btnGoToCoord.disabled = navigating || !data.connected;
-    btnGoToArea.disabled  = navigating || !data.connected;
+    btnGoToArea.disabled = navigating || !data.connected;
     btnStopNav.style.display = navigating ? 'inline-flex' : 'none';
   }
 
@@ -284,9 +290,9 @@ document.addEventListener('DOMContentLoaded', event => {
   // --- Navegación por área ---
   function goToArea() {
     if (!data.connected) return;
-    const sel    = document.getElementById('navAreaSelect');
+    const sel = document.getElementById('navAreaSelect');
     const areaKey = sel.value;
-    const coords  = areas[areaKey];
+    const coords = areas[areaKey];
     if (!coords) return;
     sendNavGoal(coords.x, coords.y);
     const label = sel.options[sel.selectedIndex].text;
@@ -312,6 +318,80 @@ document.addEventListener('DOMContentLoaded', event => {
     setTimeout(() => setNavStatus('', 'hidden'), 3000);
   }
 
+  /**
+ * Dibuja el OccupancyGrid recibido desde ROS2
+ * dentro del canvas del mapa.
+ *
+ * @param {Object} message Mensaje nav_msgs/msg/OccupancyGrid
+ */
+  function drawOccupancyGrid(message) {
+
+    if (!mapCanvas) return;
+
+    const ctx = mapCanvas.getContext('2d');
+
+    const width = message.info.width;
+    const height = message.info.height;
+
+    mapCanvas.width = width;
+    mapCanvas.height = height;
+
+    const imageData = ctx.createImageData(width, height);
+
+    for (let y = 0; y < height; y++) {
+
+      for (let x = 0; x < width; x++) {
+
+        const mapIndex = y * width + x;
+
+        // Invertir eje Y para alinearlo con ROS
+        const canvasY = height - y - 1;
+
+        const pixelIndex = (canvasY * width + x) * 4;
+
+        const value = message.data[mapIndex];
+
+        let color = 150;
+
+        if (value === 0) {
+          color = 255;
+        }
+        else if (value === 100) {
+          color = 0;
+        }
+
+        imageData.data[pixelIndex] = color;
+        imageData.data[pixelIndex + 1] = color;
+        imageData.data[pixelIndex + 2] = color;
+        imageData.data[pixelIndex + 3] = 255;
+      }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+
+    mapCanvas.style.width = '100%';
+    mapCanvas.style.height = '100%';
+  }
+
+  /**
+ * Se suscribe al topic /map para recibir
+ * el OccupancyGrid publicado por ROS2.
+ */
+  function subscribeToMap() {
+
+    mapTopic = new ROSLIB.Topic({
+      ros: data.ros,
+      name: '/map',
+      messageType: 'nav_msgs/msg/OccupancyGrid'
+    });
+
+    mapTopic.subscribe((message) => {
+
+      console.log('Mapa recibido');
+
+      drawOccupancyGrid(message);
+    });
+  }
 
   document.getElementById('btnGoToCoord')?.addEventListener('click', goToCoordinates);
   document.getElementById('btnGoToArea')?.addEventListener('click', goToArea);
@@ -321,6 +401,6 @@ document.addEventListener('DOMContentLoaded', event => {
 
   // Estado inicial: barra oculta, botón detener oculto
   if (navStatusBar) navStatusBar.style.display = 'none';
-  if (btnStopNav)   btnStopNav.style.display   = 'none';
+  if (btnStopNav) btnStopNav.style.display = 'none';
 
 });
