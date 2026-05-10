@@ -12,6 +12,7 @@ Plataforma web del proyecto A1AN, un robot asistencial orientado a personas con 
 |------|-----------|
 | Frontend | HTML5, CSS3, JavaScript ES6+ (Vanilla) |
 | Auth & Base de datos | [Supabase](https://supabase.com) (PostgreSQL + Auth) |
+| Robot | ROS 2, ROSBridge, roslibjs, web_video_server |
 | Despliegue | [Vercel](https://vercel.com) |
 | Fuente | [Inter](https://fonts.google.com/specimen/Inter) vía Google Fonts |
 
@@ -50,6 +51,7 @@ a1an-web/
 │   ├── supabase-client.js  Inicialización del cliente Supabase
 │   ├── auth.js             Login, registro, recuperación y reset de contraseña
 │   ├── dashboard.js        Sesión, sidebar, loader, logout modal, vinculación robot
+│   ├── rosbridge.js        Conexión ROSBridge y control manual del TurtleBot
 │   ├── robot.js            Control del robot: on/off, batería, diagnóstico
 │   ├── notifications.js    Renderizado, filtros, marcar como leída
 │   └── main.js             Landing: scroll, menú, animaciones
@@ -106,6 +108,62 @@ npx serve .
 
 ---
 
+## Cámara y control ROS 2 en local
+
+El dashboard incluye un panel de cámara en vivo y controles manuales para el TurtleBot. La cámara no se recibe por ROSBridge: se muestra como stream MJPEG servido por `web_video_server` desde el topic `/camera/image_raw`.
+
+Antes de abrir la web, deben estar ejecutándose la simulación, ROSBridge y el servidor de vídeo:
+
+```bash
+cd ~/turtlebot3_ws
+source install/setup.bash
+export TURTLEBOT3_MODEL=burger_cam
+ros2 launch a1an_world a1an_world.launch.py
+```
+
+```bash
+cd ~/turtlebot3_ws
+source install/setup.bash
+ros2 launch rosbridge_server rosbridge_websocket_launch.xml
+```
+
+```bash
+cd ~/turtlebot3_ws
+source install/setup.bash
+ros2 run web_video_server web_video_server --ros-args -p port:=8081
+```
+
+Comprobación directa del stream:
+
+```text
+http://localhost:8081/snapshot?topic=/camera/image_raw
+http://localhost:8081/stream?topic=/camera/image_raw&type=mjpeg
+```
+
+Después se puede servir la web desde la raíz del repositorio:
+
+```bash
+python3 -m http.server 8000
+```
+
+Y abrir:
+
+```text
+http://localhost:8000/pages/dashboard.html
+```
+
+Si se accede desde otro equipo de la misma red, `localhost` apunta al equipo del navegador. En ese caso hay que usar la IP del ordenador que ejecuta ROS/Gazebo:
+
+```text
+Web:        http://IP_DEL_PC_WEB:8000/pages/dashboard.html
+Cámara:     http://IP_DEL_PC_ROS:8081/stream?topic=/camera/image_raw&type=mjpeg
+ROSBridge:  ws://IP_DEL_PC_ROS:9090
+```
+
+La URL de cámara se configura en `js/dashboard.js` con `CAMERA_STREAM_HOST`.
+
+---
+
 ## Variables de entorno / Configuración
 
 Las credenciales de Supabase están en `js/supabase-client.js`:
@@ -140,6 +198,8 @@ El proyecto se despliega automáticamente desde la rama `main` de GitHub.
 | Perfil (editar datos) | ✅ Real | Escribe en tabla `usuarios` + `auth.updateUser` |
 | Cambiar contraseña | ✅ Real | `supabase.auth.updateUser({ password })` |
 | Vinculación de robot | ✅ Real | Persiste en tabla `robots` |
+| Control manual ROSBridge | 🟡 Local | Publica comandos al robot mediante `ws://localhost:9090` |
+| Cámara ROS 2 | 🟡 Local | Muestra `/camera/image_raw` mediante `web_video_server` |
 | Popup de logout | ✅ | Confirmación antes de cerrar sesión |
 | Loader de página | ✅ | Spinner mientras se verifica la sesión |
 | Página 404 | ✅ | Diseño personalizado con la marca A1AN |

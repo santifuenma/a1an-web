@@ -3,6 +3,11 @@
    Dashboard & Private Area JS
    ============================================ */
 
+const CAMERA_TOPIC = '/camera/image_raw';
+// Si abres la web desde otro equipo, define window.A1AN_CAMERA_STREAM_HOST = 'http://IP_DEL_ROBOT:8081' antes de cargar este script.
+const CAMERA_STREAM_HOST = window.A1AN_CAMERA_STREAM_HOST || 'http://localhost:8081';
+const CAMERA_STREAM_URL = window.A1AN_CAMERA_STREAM_URL || `${CAMERA_STREAM_HOST}/stream?topic=${CAMERA_TOPIC}&type=mjpeg`;
+
 // --- Page Loader ---
 function showPageLoader() {
   const loader = document.createElement('div');
@@ -36,6 +41,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initLogoutModal();
   initRobotLinking(user);
   initPatientWelcome(user);
+  initCameraFeed();
   initCameraTimestamp();
   initWeeklyPlan();
   initDashboardData(user);
@@ -74,6 +80,36 @@ function initCameraTimestamp() {
   update();
   setInterval(update, 1000);
 }
+
+function updateCameraFeed() {
+  const img = document.getElementById('cameraFeed');
+  if (!img) return;
+  img.src = CAMERA_STREAM_URL;
+}
+
+function initCameraFeed() {
+  const img = document.getElementById('cameraFeed');
+  const container = img?.closest('.video-container');
+  const statusBadge = document.getElementById('cameraStatusBadge');
+  if (!img || !container) return;
+
+  const setCameraState = (state) => {
+    const unavailable = state === 'error';
+    container.classList.toggle('camera-unavailable', unavailable);
+
+    if (!statusBadge) return;
+    statusBadge.className = 'badge ' + (unavailable ? 'badge-danger' : state === 'loading' ? 'badge-warning' : 'badge-success');
+    statusBadge.textContent = unavailable ? 'Sin señal' : state === 'loading' ? 'Conectando' : 'En línea';
+  };
+
+  img.addEventListener('load', () => setCameraState('online'));
+  img.addEventListener('error', () => setCameraState('error'));
+
+  setCameraState('loading');
+  updateCameraFeed();
+}
+
+window.updateCameraFeed = updateCameraFeed;
 
 // --- Weekly Plan (visual) ---
 function initWeeklyPlan() {

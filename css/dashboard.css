@@ -1606,6 +1606,37 @@
   filter: contrast(1.1) brightness(0.9) saturate(0.8) grayscale(0.2);
 }
 
+.camera-feed {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #000;
+}
+
+.camera-error {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-6);
+  color: #fff;
+  background: radial-gradient(circle at center, rgba(239,68,68,0.22), rgba(0,0,0,0.9));
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  text-align: center;
+  z-index: 4;
+}
+
+.camera-unavailable .camera-feed {
+  opacity: 0;
+}
+
+.camera-unavailable .camera-error {
+  display: flex;
+}
+
 .video-overlay {
   position: absolute;
   inset: 0;
