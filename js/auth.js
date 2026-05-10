@@ -127,7 +127,6 @@ async function handleRegister(e) {
 
   if (!firstName) { showFieldError('firstName', 'firstNameError'); valid = false; }
   if (!lastName) { showFieldError('lastName', 'lastNameError'); valid = false; }
-  if (!numeroIdentificacion) { showFieldError('numeroIdentificacion', 'numeroIdentificacionError'); valid = false; }
   if (!isValidEmail(email)) { showFieldError('email', 'emailError'); valid = false; }
   if (password.length < 6) { showFieldError('password', 'passwordError'); valid = false; }
   if (password !== confirmPassword) { showFieldError('confirmPassword', 'confirmPasswordError'); valid = false; }
