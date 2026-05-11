@@ -4,9 +4,12 @@
    ============================================ */
 
 const CAMERA_TOPIC = '/camera/image_raw';
+const CAMERA_DEBUG_TOPIC = '/a1an_vision/debug_image';
 // Si abres la web desde otro equipo, define window.A1AN_CAMERA_STREAM_HOST = 'http://IP_DEL_ROBOT:8081' antes de cargar este script.
 const CAMERA_STREAM_HOST = window.A1AN_CAMERA_STREAM_HOST || 'http://localhost:8081';
 const CAMERA_STREAM_URL = window.A1AN_CAMERA_STREAM_URL || `${CAMERA_STREAM_HOST}/stream?topic=${CAMERA_TOPIC}&type=mjpeg`;
+const CAMERA_DEBUG_STREAM_URL = window.A1AN_CAMERA_DEBUG_STREAM_URL || `${CAMERA_STREAM_HOST}/stream?topic=${CAMERA_DEBUG_TOPIC}&type=mjpeg`;
+let cameraDetectionsEnabled = false;
 
 // --- Page Loader ---
 function showPageLoader() {
@@ -83,13 +86,15 @@ function initCameraTimestamp() {
 function updateCameraFeed() {
   const img = document.getElementById('cameraFeed');
   if (!img) return;
-  img.src = CAMERA_STREAM_URL;
+  img.src = cameraDetectionsEnabled ? CAMERA_DEBUG_STREAM_URL : CAMERA_STREAM_URL;
 }
 
 function initCameraFeed() {
   const img = document.getElementById('cameraFeed');
   const container = img?.closest('.video-container');
   const statusBadge = document.getElementById('cameraStatusBadge');
+  const detectionToggle = document.getElementById('cameraDetectionToggle');
+  const modeText = document.getElementById('cameraModeText');
   if (!img || !container) return;
 
   const setCameraState = (state) => {
@@ -101,6 +106,23 @@ function initCameraFeed() {
     statusBadge.textContent = unavailable ? 'Sin señal' : state === 'loading' ? 'Conectando' : 'En línea';
   };
 
+  const updateCameraMode = () => {
+    if (detectionToggle) {
+      detectionToggle.classList.toggle('active', cameraDetectionsEnabled);
+      detectionToggle.setAttribute('aria-pressed', String(cameraDetectionsEnabled));
+    }
+    if (modeText) {
+      modeText.textContent = cameraDetectionsEnabled ? 'Vista con detección de objetos' : 'Vista normal del robot';
+    }
+    setCameraState('loading');
+    updateCameraFeed();
+  };
+
+  detectionToggle?.addEventListener('click', () => {
+    cameraDetectionsEnabled = !cameraDetectionsEnabled;
+    updateCameraMode();
+  });
+
   img.addEventListener('load', () => setCameraState('online'));
   img.addEventListener('error', () => setCameraState('error'));
 
@@ -109,6 +131,53 @@ function initCameraFeed() {
 }
 
 window.updateCameraFeed = updateCameraFeed;
+
+function renderVisionDetections(payload) {
+  const statusText = document.getElementById('visionStatusText');
+  const labelEl = document.getElementById('detectionObjectLabel');
+  const confidenceEl = document.getElementById('detectionConfidence');
+  const positionEl = document.getElementById('detectionPosition');
+  const summary = document.getElementById('detectionSummary');
+  if (!statusText || !labelEl || !confidenceEl || !positionEl || !summary) return;
+
+  const objects = Array.isArray(payload?.objects) ? payload.objects : [];
+  const bestObject = objects[0];
+
+  if (!payload?.detected || !bestObject) {
+    statusText.textContent = payload?.message || 'Sin objetos relevantes detectados';
+    labelEl.textContent = 'Sin objetos';
+    confidenceEl.textContent = '--';
+    positionEl.textContent = '--';
+    summary.classList.remove('active');
+    return;
+  }
+
+  const confidence = typeof bestObject.confidence === 'number'
+    ? `${Math.round(bestObject.confidence * 100)}%`
+    : '--';
+
+  statusText.textContent = payload.message || 'Objeto relevante detectado';
+  labelEl.textContent = bestObject.label || 'Objeto';
+  confidenceEl.textContent = confidence;
+  positionEl.textContent = bestObject.position || '--';
+  summary.classList.add('active');
+}
+
+function setVisionConnectionState(state) {
+  const statusText = document.getElementById('visionStatusText');
+  if (!statusText) return;
+
+  if (state === 'connected') {
+    statusText.textContent = 'Esperando detecciones de /a1an_vision/detected_objects';
+  } else if (state === 'error') {
+    statusText.textContent = 'No se pudieron leer las detecciones';
+  } else {
+    statusText.textContent = 'Conecta ROSBridge para ver detecciones';
+  }
+}
+
+window.renderVisionDetections = renderVisionDetections;
+window.setVisionConnectionState = setVisionConnectionState;
 
 // --- Weekly Plan (visual) ---
 function initWeeklyPlan() {

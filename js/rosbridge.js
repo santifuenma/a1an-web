@@ -8,7 +8,8 @@ document.addEventListener('DOMContentLoaded', event => {
   const data = {
     ros: null,
     rosbridge_address: document.getElementById('rosbridgeUrl').value,
-    connected: false
+    connected: false,
+    detectionsTopic: null
   };
 
   const connectBtn = document.getElementById('rosbridgeConnectBtn');
@@ -55,25 +56,60 @@ document.addEventListener('DOMContentLoaded', event => {
     data.ros.on('connection', () => {
       data.connected = true;
       setStatus('connected');
+      subscribeDetections();
     });
 
     data.ros.on('error', (error) => {
       console.log('ROSBridge error:', error);
       data.connected = false;
       setStatus('error');
+      unsubscribeDetections();
+      window.setVisionConnectionState?.('error');
     });
 
     data.ros.on('close', () => {
       data.connected = false;
       setStatus('disconnected');
+      unsubscribeDetections();
+      window.setVisionConnectionState?.('disconnected');
     });
   }
 
   // --- Desconectar ---
   function disconnect() {
+    unsubscribeDetections();
     if (data.ros) data.ros.close();
     data.connected = false;
     setStatus('disconnected');
+    window.setVisionConnectionState?.('disconnected');
+  }
+
+  function subscribeDetections() {
+    if (!data.connected || data.detectionsTopic) return;
+
+    data.detectionsTopic = new ROSLIB.Topic({
+      ros: data.ros,
+      name: '/a1an_vision/detected_objects',
+      messageType: 'std_msgs/String'
+    });
+
+    data.detectionsTopic.subscribe((message) => {
+      try {
+        const payload = JSON.parse(message.data);
+        window.renderVisionDetections?.(payload);
+      } catch (error) {
+        console.log('Detection payload parse error:', error, message.data);
+        window.setVisionConnectionState?.('error');
+      }
+    });
+
+    window.setVisionConnectionState?.('connected');
+  }
+
+  function unsubscribeDetections() {
+    if (!data.detectionsTopic) return;
+    data.detectionsTopic.unsubscribe();
+    data.detectionsTopic = null;
   }
 
   // --- Listener del botón ---
