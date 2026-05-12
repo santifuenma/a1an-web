@@ -4,10 +4,16 @@
    ============================================ */
 
 document.addEventListener('DOMContentLoaded', event => {
+  const rosbridgeInput = document.getElementById('rosbridgeUrl');
+  const defaultRosbridgeUrl = window.A1AN_ROBOT_CONFIG?.rosbridgeUrl || rosbridgeInput?.value || 'ws://localhost:9090';
+
+  if (rosbridgeInput) {
+    rosbridgeInput.value = defaultRosbridgeUrl;
+  }
 
   const data = {
     ros: null,
-    rosbridge_address: document.getElementById('rosbridgeUrl').value,
+    rosbridge_address: defaultRosbridgeUrl,
     connected: false,
     detectionsTopic: null
   };

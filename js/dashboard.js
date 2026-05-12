@@ -11,10 +11,10 @@ const CAMERA_DEBUG_TOPIC = '/a1an_vision/debug_image';
 // 2. Para solucionarlo, debes usar una IP pública con HTTPS o configurar un túnel/web proxy.
 // 3. Puedes forzar la IP del robot definiendo window.A1AN_CAMERA_STREAM_HOST.
 
-const CAMERA_STREAM_HOST = window.A1AN_CAMERA_STREAM_HOST || 
-                          (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' 
-                           ? `http://${window.location.hostname}:8081` 
-                           : 'http://localhost:8081');
+const ROBOT_CONFIG = window.A1AN_ROBOT_CONFIG || {};
+const CAMERA_STREAM_HOST = window.A1AN_CAMERA_STREAM_HOST ||
+                           ROBOT_CONFIG.cameraStreamHost ||
+                           'http://localhost:8081';
                            
 const CAMERA_STREAM_URL = window.A1AN_CAMERA_STREAM_URL || `${CAMERA_STREAM_HOST}/stream?topic=${CAMERA_TOPIC}&type=mjpeg`;
 const CAMERA_DEBUG_STREAM_URL = window.A1AN_CAMERA_DEBUG_STREAM_URL || `${CAMERA_STREAM_HOST}/stream?topic=${CAMERA_DEBUG_TOPIC}&type=mjpeg`;
