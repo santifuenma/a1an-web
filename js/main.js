@@ -65,11 +65,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- Contact form ---
   const contactForm = document.getElementById('contactForm');
   if (contactForm) {
-    contactForm.addEventListener('submit', (e) => {
+    contactForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = document.getElementById('contactName').value.trim();
       const email = document.getElementById('contactEmail').value.trim();
       const message = document.getElementById('contactMessage').value.trim();
+      const submitBtn = contactForm.querySelector('button[type="submit"]');
 
       if (!name || !email || !message) {
         showToast('Por favor, completa todos los campos.', 'danger');
@@ -81,8 +82,43 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      showToast('Mensaje enviado correctamente. ¡Gracias por contactarnos!', 'success');
-      contactForm.reset();
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = 'Enviando...';
+      submitBtn.disabled = true;
+
+      try {
+        if (typeof supabase !== 'undefined') {
+          // Comprobar si hay sesión, pero no bloquear si no la hay
+          const { data: { session } } = await supabase.auth.getSession();
+          
+          let insertData = {
+            asunto: `Contacto web de ${name}`, 
+            mensaje: `Nombre: ${name}\nEmail: ${email}\n\nMensaje:\n${message}`
+          };
+
+          // Si hay sesión, lo vinculamos a su usuario
+          if (session) {
+            insertData.usuario_id = session.user.id;
+          }
+
+          const { error } = await supabase
+            .from('consultas_soporte')
+            .insert(insertData);
+
+          if (error) throw error;
+        } else {
+          console.warn('Cliente Supabase no encontrado. Envío simulado.');
+        }
+
+        showToast('Consulta enviada correctamente. Te responderemos pronto.', 'success');
+        contactForm.reset();
+      } catch (err) {
+        console.error('Error al enviar el mensaje:', err);
+        showToast('Error al enviar el mensaje. Inténtalo de nuevo más tarde.', 'danger');
+      } finally {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+      }
     });
   }
 

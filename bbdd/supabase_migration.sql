@@ -283,7 +283,9 @@ CREATE POLICY "Gestionar pasos de propias rutas"
 -- =============================================
 CREATE TABLE public.consultas_soporte (
   id              serial PRIMARY KEY,
-  usuario_id      uuid        NOT NULL REFERENCES public.usuarios(id) ON DELETE CASCADE,
+  usuario_id      uuid        REFERENCES public.usuarios(id) ON DELETE CASCADE,
+  nombre_remitente varchar(100),
+  email_remitente  varchar(120),
   asunto          varchar(200) NOT NULL,
   mensaje         text        NOT NULL,
   estado          varchar(30) NOT NULL DEFAULT 'pendiente',
@@ -292,10 +294,17 @@ CREATE TABLE public.consultas_soporte (
 
 ALTER TABLE public.consultas_soporte ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Gestionar propias consultas"
-  ON public.consultas_soporte FOR ALL
-  USING (auth.uid() = usuario_id)
-  WITH CHECK (auth.uid() = usuario_id);
+-- Permitir insertar a cualquier usuario (registrado o anónimo)
+CREATE POLICY "Permitir insertar consultas"
+  ON public.consultas_soporte FOR INSERT
+  TO anon, authenticated
+  WITH CHECK (true);
+
+-- Permitir a usuarios autenticados ver sus propias consultas
+CREATE POLICY "Ver propias consultas"
+  ON public.consultas_soporte FOR SELECT
+  TO authenticated
+  USING (auth.uid() = usuario_id);
 
 
 -- =============================================
