@@ -805,17 +805,12 @@ async function updateGlobalBadges(userId) {
 
     const unread = count || 0;
 
-    // Update topbar badge (all pages)
+    // Update topbar dot (all pages) — just show/hide
     document.querySelectorAll('.topbar-notification-badge').forEach(badge => {
-      if (unread > 0) {
-        badge.textContent = unread > 9 ? '9+' : unread;
-        badge.style.display = 'flex';
-      } else {
-        badge.style.display = 'none';
-      }
+      badge.style.display = unread > 0 ? 'block' : 'none';
     });
 
-    // Update sidebar badge
+    // Update sidebar badge with count
     const sidebarBadge = document.getElementById('sidebarNotifBadge');
     if (sidebarBadge) {
       if (unread > 0) {
