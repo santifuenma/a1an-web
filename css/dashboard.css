@@ -1590,6 +1590,36 @@
   border-bottom: 1px solid var(--color-border);
 }
 
+.camera-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.camera-detection-toggle {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  color: var(--color-gray);
+  padding: 0.35rem 0.65rem;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.camera-detection-toggle:hover {
+  border-color: var(--color-accent);
+  color: var(--color-secondary);
+}
+
+.camera-detection-toggle.active {
+  background: rgba(83,178,184,0.12);
+  border-color: var(--color-accent);
+  color: var(--color-secondary);
+}
+
 .video-container {
   position: relative;
   width: 100%;
@@ -1635,6 +1665,59 @@
 
 .camera-unavailable .camera-error {
   display: flex;
+}
+
+.camera-info-panel {
+  padding: 0.7rem 1rem;
+  background: var(--color-white);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+}
+
+.camera-info-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.camera-info-copy span:first-child {
+  color: var(--color-dark);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+
+.camera-info-copy span:last-child {
+  color: var(--color-gray);
+  font-size: var(--font-size-xs);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detection-summary {
+  display: grid;
+  grid-template-columns: repeat(3, max-content);
+  gap: var(--spacing-2);
+  align-items: center;
+  color: var(--color-gray);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.detection-summary span {
+  padding: 0.25rem 0.45rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+}
+
+.detection-summary.active span:first-child {
+  color: var(--color-secondary);
+  background: rgba(83,178,184,0.12);
 }
 
 .video-overlay {
@@ -1750,6 +1833,15 @@
 @media (max-width: 768px) {
   .video-container {
     aspect-ratio: 4 / 3;
+  }
+
+  .camera-info-panel {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .camera-info-copy span:last-child {
+    white-space: normal;
   }
 }
 

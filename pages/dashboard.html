@@ -201,7 +201,12 @@
           <div class="camera-widget">
             <div class="camera-widget-header">
               <span class="widget-title">Cámara en vivo — A1AN</span>
-              <div class="badge badge-success" id="cameraStatusBadge">Conectando</div>
+              <div class="camera-header-actions">
+                <button class="camera-detection-toggle" id="cameraDetectionToggle" type="button" aria-pressed="false">
+                  Detección
+                </button>
+                <div class="badge badge-success" id="cameraStatusBadge">Conectando</div>
+              </div>
             </div>
             <div class="video-container" id="divCamera">
               <img id="cameraFeed" class="camera-feed" src="http://localhost:8081/stream?topic=/camera/image_raw&type=mjpeg" alt="Vista en directo de la cámara del robot">
@@ -219,10 +224,22 @@
                 </div>
               </div>
             </div>
+            <div class="camera-info-panel">
+              <div class="camera-info-copy">
+                <span id="cameraModeText">Vista normal del robot</span>
+                <span id="visionStatusText">Conecta ROSBridge para ver detecciones</span>
+              </div>
+              
+              <div class="detection-summary" id="detectionSummary">
+                <span id="detectionObjectLabel">Sin objetos</span>
+                <span id="detectionConfidence">--</span>
+                <span id="detectionPosition">--</span>
+              </div>
+              
             <div
               style="padding: 0.6rem 1rem; background: var(--color-white); border-top: 1px solid var(--color-border); display:flex; align-items:center; justify-content:space-between;">
-              <span style="font-size:var(--font-size-xs); color:var(--color-gray);">Vista en tiempo real del
-                robot</span>
+              <span style="font-size:var(--font-size-xs); color:var(--color-gray);">Vista en tiempo real del robot
+              </span>
               <span
                 style="font-size:var(--font-size-xs); color:var(--color-gray); font-weight:600; cursor:not-allowed; opacity: 0.5; pointer-events: none;">Ver
                 control completo →</span>

@@ -110,7 +110,9 @@ npx serve .
 
 ## Cámara y control ROS 2 en local
 
-El dashboard incluye un panel de cámara en vivo y controles manuales para el TurtleBot. La cámara no se recibe por ROSBridge: se muestra como stream MJPEG servido por `web_video_server` desde el topic `/camera/image_raw`.
+El dashboard incluye un panel de cámara en vivo, detección de objetos y controles manuales para el TurtleBot. La imagen de cámara no se recibe por ROSBridge: se muestra como stream MJPEG servido por `web_video_server`.
+
+La vista normal usa el topic `/camera/image_raw`. Al activar el botón de detección en el panel de cámara, la web cambia al stream procesado `/a1an_vision/debug_image`, que incluye las bounding boxes generadas en ROS.
 
 Antes de abrir la web, deben estar ejecutándose la simulación, ROSBridge y el servidor de vídeo:
 
@@ -138,7 +140,10 @@ Comprobación directa del stream:
 ```text
 http://localhost:8081/snapshot?topic=/camera/image_raw
 http://localhost:8081/stream?topic=/camera/image_raw&type=mjpeg
+http://localhost:8081/stream?topic=/a1an_vision/debug_image&type=mjpeg
 ```
+
+Además, al conectar ROSBridge, la web se suscribe al topic `/a1an_vision/detected_objects` (`std_msgs/String`). El campo `data` contiene un JSON con el último estado de detección, incluyendo etiqueta, confianza y posición.
 
 Después se puede servir la web desde la raíz del repositorio:
 
@@ -157,6 +162,7 @@ Si se accede desde otro equipo de la misma red, `localhost` apunta al equipo del
 ```text
 Web:        http://IP_DEL_PC_WEB:8000/pages/dashboard.html
 Cámara:     http://IP_DEL_PC_ROS:8081/stream?topic=/camera/image_raw&type=mjpeg
+Detección:  http://IP_DEL_PC_ROS:8081/stream?topic=/a1an_vision/debug_image&type=mjpeg
 ROSBridge:  ws://IP_DEL_PC_ROS:9090
 ```
 
@@ -200,6 +206,7 @@ El proyecto se despliega automáticamente desde la rama `main` de GitHub.
 | Vinculación de robot | ✅ Real | Persiste en tabla `robots` |
 | Control manual ROSBridge | 🟡 Local | Publica comandos al robot mediante `ws://localhost:9090` |
 | Cámara ROS 2 | 🟡 Local | Muestra `/camera/image_raw` mediante `web_video_server` |
+| Detección de objetos | 🟡 Local | Alterna el stream `/a1an_vision/debug_image` y lee `/a1an_vision/detected_objects` |
 | Popup de logout | ✅ | Confirmación antes de cerrar sesión |
 | Loader de página | ✅ | Spinner mientras se verifica la sesión |
 | Página 404 | ✅ | Diseño personalizado con la marca A1AN |
