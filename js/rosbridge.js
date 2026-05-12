@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', event => {
     rosbridge_address: document.getElementById('rosbridgeUrl').value,
     connected: false,
     detectionsTopic: null
+
   };
 
   const connectBtn = document.getElementById('rosbridgeConnectBtn');
@@ -81,6 +82,7 @@ document.addEventListener('DOMContentLoaded', event => {
       data.connected = false;
       setStatus('error');
       unsubscribeDetections();
+
       window.setVisionConnectionState?.('error');
       drawMapDisconnectedOverlay();
     });
@@ -89,6 +91,7 @@ document.addEventListener('DOMContentLoaded', event => {
       data.connected = false;
       setStatus('disconnected');
       unsubscribeDetections();
+
       window.setVisionConnectionState?.('disconnected');
       drawMapDisconnectedOverlay();
     });
@@ -100,7 +103,6 @@ document.addEventListener('DOMContentLoaded', event => {
     if (data.ros) data.ros.close();
     data.connected = false;
     setStatus('disconnected');
-    window.setVisionConnectionState?.('disconnected');
   }
 
   function subscribeDetections() {
@@ -130,6 +132,8 @@ document.addEventListener('DOMContentLoaded', event => {
     data.detectionsTopic.unsubscribe();
     data.detectionsTopic = null;
   }
+
+
 
   // --- Listener del botón ---
   connectBtn.addEventListener('click', () => {

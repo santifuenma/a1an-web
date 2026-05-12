@@ -20,6 +20,7 @@ const CAMERA_STREAM_URL = window.A1AN_CAMERA_STREAM_URL || `${CAMERA_STREAM_HOST
 const CAMERA_DEBUG_STREAM_URL = window.A1AN_CAMERA_DEBUG_STREAM_URL || `${CAMERA_STREAM_HOST}/stream?topic=${CAMERA_DEBUG_TOPIC}&type=mjpeg`;
 let cameraDetectionsEnabled = false;
 
+
 // --- Page Loader ---
 function showPageLoader() {
   const loader = document.createElement('div');
@@ -98,7 +99,6 @@ function updateCameraFeed() {
   if (!img) return;
   img.src = cameraDetectionsEnabled ? CAMERA_DEBUG_STREAM_URL : CAMERA_STREAM_URL;
 }
-
 function initCameraFeed() {
   const img = document.getElementById('cameraFeed');
   const container = img?.closest('.video-container');
@@ -167,6 +167,7 @@ function initCameraFeed() {
   }, 10000);
 }
 
+
 window.updateCameraFeed = updateCameraFeed;
 
 function renderVisionDetections(payload) {
@@ -215,6 +216,8 @@ function setVisionConnectionState(state) {
 
 window.renderVisionDetections = renderVisionDetections;
 window.setVisionConnectionState = setVisionConnectionState;
+
+
 
 // --- Weekly Plan (visual) ---
 function initWeeklyPlan() {
