@@ -575,22 +575,6 @@ async function loadRobotSummary(userId) {
       batteryBar.classList.add('low');
     }
   }
-
-  if (statusText) {
-    if (robot.estado === 'activo') {
-      statusText.textContent = 'En línea';
-      if (statusDot) {
-        statusDot.classList.remove('offline');
-        statusDot.classList.add('online');
-      }
-    } else {
-      statusText.textContent = 'Fuera de línea';
-      if (statusDot) {
-        statusDot.classList.remove('online');
-        statusDot.classList.add('offline');
-      }
-    }
-  }
 }
 
 /**

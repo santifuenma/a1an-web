@@ -52,6 +52,16 @@ document.addEventListener('DOMContentLoaded', event => {
     statusText.textContent = isConnected ? 'Conectado ✓' : isError ? 'Error de conexión' : 'Desconectado';
     statusBadge.classList.toggle('connected', isConnected);
 
+    // Actualizar también el widget principal del Dashboard
+    const mockDot = document.getElementById('mockStatusDot');
+    const mockText = document.getElementById('mockStatusText');
+    if (mockDot) {
+      mockDot.className = 'status-dot ' + (isConnected ? 'online' : isError ? 'error' : 'offline');
+    }
+    if (mockText) {
+      mockText.textContent = isConnected ? 'Conectado' : isError ? 'Error' : 'Fuera de línea';
+    }
+
     // Habilitar / deshabilitar botones
     moveButtons.forEach(btn => { if (btn) btn.disabled = !isConnected; });
 
