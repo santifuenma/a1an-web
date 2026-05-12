@@ -11,11 +11,11 @@ const CAMERA_DEBUG_TOPIC = '/a1an_vision/debug_image';
 // 2. Para solucionarlo, debes usar una IP pública con HTTPS o configurar un túnel/web proxy.
 // 3. Puedes forzar la IP del robot definiendo window.A1AN_CAMERA_STREAM_HOST.
 
-const CAMERA_STREAM_HOST = window.A1AN_CAMERA_STREAM_HOST || 
-                          (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' 
-                           ? `http://${window.location.hostname}:8081` 
-                           : 'http://localhost:8081');
-                           
+const CAMERA_STREAM_HOST = window.A1AN_CAMERA_STREAM_HOST ||
+  (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
+    ? `http://${window.location.hostname}:8081`
+    : 'http://localhost:8081');
+
 const CAMERA_STREAM_URL = window.A1AN_CAMERA_STREAM_URL || `${CAMERA_STREAM_HOST}/stream?topic=${CAMERA_TOPIC}&type=mjpeg`;
 const CAMERA_DEBUG_STREAM_URL = window.A1AN_CAMERA_DEBUG_STREAM_URL || `${CAMERA_STREAM_HOST}/stream?topic=${CAMERA_DEBUG_TOPIC}&type=mjpeg`;
 let cameraDetectionsEnabled = false;
@@ -57,6 +57,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initCameraTimestamp();
   initWeeklyPlan();
   initDashboardData(user);
+
 });
 
 // --- Patient Welcome ---
@@ -117,7 +118,7 @@ function initCameraFeed() {
     if (!statusBadge) return;
     statusBadge.className = 'badge ' + (unavailable ? 'badge-danger' : state === 'loading' ? 'badge-warning' : 'badge-success');
     statusBadge.textContent = unavailable ? 'Sin señal' : state === 'loading' ? 'Conectando' : 'En línea';
-    
+
     if (unavailable) {
       console.warn("Cámara: Sin señal en " + CAMERA_STREAM_URL);
     }
@@ -738,26 +739,22 @@ async function loadWeeklyPlan(userId) {
     card.innerHTML = `
       <div class="week-day-name">${day.label}</div>
       <div class="week-day-num">${dayNumber}</div>
-      <div class="week-day-exercise-icon" style="background: ${
-        exerciseForDay ? 'rgba(83, 178, 184, 0.15)' : 'rgba(0,0,0,0.05)'
-      }; color: ${
-        exerciseForDay ? 'var(--color-accent)' : 'var(--color-gray)'
+      <div class="week-day-exercise-icon" style="background: ${exerciseForDay ? 'rgba(83, 178, 184, 0.15)' : 'rgba(0,0,0,0.05)'
+      }; color: ${exerciseForDay ? 'var(--color-accent)' : 'var(--color-gray)'
       };">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
           stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          ${
-            exerciseForDay
-              ? '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />'
-              : '<circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/>'
-          }
+          ${exerciseForDay
+        ? '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />'
+        : '<circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/>'
+      }
         </svg>
       </div>
       <div class="week-day-exercise-name">
-        ${
-          exerciseForDay
-            ? exerciseForDay.ejercicios.titulo
-            : 'Descanso'
-        }
+        ${exerciseForDay
+        ? exerciseForDay.ejercicios.titulo
+        : 'Descanso'
+      }
       </div>
     `;
 
@@ -778,3 +775,4 @@ function showToast(message, type = '') {
   if (type) toast.classList.add('toast-' + type);
   setTimeout(() => { toast.classList.remove('show'); }, 3500);
 }
+

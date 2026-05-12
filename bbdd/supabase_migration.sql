@@ -231,3 +231,48 @@ ALTER TABLE public.areas_mapa ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Gestionar propias áreas de mapa"
   ON public.areas_mapa FOR ALL
   USING (auth.uid() = usuario_id);
+
+
+-- =============================================
+-- 10. TABLA RUTAS_ROBOT
+-- =============================================
+CREATE TABLE public.rutas_robot (
+  id              serial PRIMARY KEY,
+  usuario_id      uuid        NOT NULL REFERENCES public.usuarios(id) ON DELETE CASCADE,
+  robot_id        integer     REFERENCES public.robots(id),
+  nombre          varchar(120) NOT NULL,
+  estado          varchar(30) NOT NULL DEFAULT 'pendiente',
+  paso_actual     integer     DEFAULT 1,
+  activa          boolean     NOT NULL DEFAULT true,
+  created_at      timestamptz DEFAULT now() NOT NULL,
+  updated_at      timestamptz DEFAULT now() NOT NULL
+);
+
+ALTER TABLE public.rutas_robot ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Gestionar propias rutas"
+  ON public.rutas_robot FOR ALL
+  USING (auth.uid() = usuario_id);
+
+
+-- =============================================
+-- 11. TABLA RUTA_PASOS
+-- =============================================
+CREATE TABLE public.ruta_pasos (
+  id              serial PRIMARY KEY,
+  ruta_id         integer     NOT NULL REFERENCES public.rutas_robot(id) ON DELETE CASCADE,
+  area_mapa_id    integer     NOT NULL REFERENCES public.areas_mapa(id),
+  orden           integer     NOT NULL,
+  estado          varchar(30) NOT NULL DEFAULT 'pendiente'
+);
+
+ALTER TABLE public.ruta_pasos ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Gestionar pasos de propias rutas"
+  ON public.ruta_pasos FOR ALL
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.rutas_robot r
+      WHERE r.id = ruta_id AND r.usuario_id = auth.uid()
+    )
+  );

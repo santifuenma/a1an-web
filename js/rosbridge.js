@@ -181,10 +181,15 @@ document.addEventListener('DOMContentLoaded', event => {
   // Coordenadas de áreas dinámicas
   let areas = {};
 
+  // Pestaña 4: Rutas
+  let routeSteps = [];
+  let routeRunning = false;
+
   async function loadAreas() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
-    const { data, error } = await supabase
+
+    const { data: areasData, error } = await supabase
       .from('areas_mapa')
       .select('*')
       .eq('usuario_id', session.user.id)
@@ -199,8 +204,8 @@ document.addEventListener('DOMContentLoaded', event => {
     const sel = document.getElementById('navAreaSelect');
     if (sel) {
       sel.innerHTML = '';
-      if (data && data.length > 0) {
-        data.forEach(area => {
+      if (areasData && areasData.length > 0) {
+        areasData.forEach(area => {
           areas[area.id] = { x: area.coordenada_x, y: area.coordenada_y };
           const opt = document.createElement('option');
           opt.value = area.id;
@@ -211,6 +216,63 @@ document.addEventListener('DOMContentLoaded', event => {
         sel.innerHTML = '<option disabled selected>Sin áreas guardadas</option>';
       }
     }
+
+    // Llamada a función para rutas
+    await loadRouteAreaSelect();
+  }
+
+  // Pestaña 4: Rutas
+  async function loadRouteAreaSelect() {
+    const sel = document.getElementById('routeAreaSelect');
+    if (!sel) return;
+
+    sel.innerHTML = '';
+
+    Object.entries(areas).forEach(([id, coords]) => {
+      const areaOption = document.querySelector(`#navAreaSelect option[value="${id}"]`);
+      const name = areaOption ? areaOption.textContent : `Área ${id}`;
+
+      const opt = document.createElement('option');
+      opt.value = id;
+      opt.textContent = name;
+      sel.appendChild(opt);
+    });
+  }
+
+  function renderRouteSteps() {
+    const list = document.getElementById('routeStepsList');
+    if (!list) return;
+
+    list.innerHTML = '';
+
+    routeSteps.forEach((step, index) => {
+      const li = document.createElement('li');
+      li.innerHTML = `
+      ${step.nombre}
+      <span class="route-step-remove" data-index="${index}">×</span>
+    `;
+      list.appendChild(li);
+    });
+
+    document.querySelectorAll('.route-step-remove').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const index = parseInt(btn.dataset.index);
+        routeSteps.splice(index, 1);
+        renderRouteSteps();
+      });
+    });
+  }
+
+  function addRouteStep() {
+    const sel = document.getElementById('routeAreaSelect');
+    if (!sel || !sel.value) return;
+
+    routeSteps.push({
+      area_id: parseInt(sel.value),
+      nombre: sel.options[sel.selectedIndex].textContent
+    });
+
+    renderRouteSteps();
   }
 
   async function saveArea() {
@@ -660,10 +722,263 @@ document.addEventListener('DOMContentLoaded', event => {
     initMapInteraction();
   }
 
+  async function saveRoute() {
+    const name = document.getElementById('newRouteName')?.value.trim();
+
+    if (!name) {
+      alert('Introduce un nombre para la ruta.');
+      return;
+    }
+
+    if (routeSteps.length === 0) {
+      alert('Añade al menos un área a la ruta.');
+      return;
+    }
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const { data: robot } = await supabase
+      .from('robots')
+      .select('id')
+      .eq('usuario_id', session.user.id)
+      .maybeSingle();
+
+    const { data: route, error: routeError } = await supabase
+      .from('rutas_robot')
+      .insert({
+        usuario_id: session.user.id,
+        robot_id: robot?.id ?? null,
+        nombre: name,
+        estado: 'pendiente',
+        paso_actual: 1,
+        activa: true
+      })
+      .select()
+      .single();
+
+    if (routeError) {
+      console.error(routeError);
+      alert('Error al guardar la ruta.');
+      return;
+    }
+
+    const pasos = routeSteps.map((step, index) => ({
+      ruta_id: route.id,
+      area_mapa_id: step.area_id,
+      orden: index + 1,
+      estado: 'pendiente'
+    }));
+
+    const { error: stepsError } = await supabase
+      .from('ruta_pasos')
+      .insert(pasos);
+
+    if (stepsError) {
+      console.error(stepsError);
+      alert('La ruta se creó, pero falló al guardar los pasos.');
+      return;
+    }
+
+    document.getElementById('newRouteName').value = '';
+    routeSteps = [];
+    renderRouteSteps();
+    await loadSavedRoutes();
+
+    alert('Ruta guardada correctamente.');
+  }
+
+  async function loadSavedRoutes() {
+    const sel = document.getElementById('savedRouteSelect');
+    const btnExecute = document.getElementById('btnExecuteRoute');
+
+    if (!sel) return;
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const { data: routes, error } = await supabase
+      .from('rutas_robot')
+      .select('id, nombre, estado')
+      .eq('usuario_id', session.user.id)
+      .eq('activa', true)
+      .order('id', { ascending: false });
+
+    if (error) {
+      console.error('Error cargando rutas:', error);
+      return;
+    }
+
+    sel.innerHTML = '';
+
+    if (!routes || routes.length === 0) {
+      sel.innerHTML = '<option disabled selected>Sin rutas guardadas</option>';
+      if (btnExecute) btnExecute.disabled = true;
+      return;
+    }
+
+    routes.forEach(route => {
+      const opt = document.createElement('option');
+      opt.value = route.id;
+      opt.textContent = route.nombre;
+      sel.appendChild(opt);
+    });
+
+    if (btnExecute) btnExecute.disabled = false;
+  }
+
+  async function executeRoute() {
+    const sel = document.getElementById('savedRouteSelect');
+    const routeId = sel?.value;
+
+    if (!routeId) {
+      alert('Selecciona una ruta.');
+      return;
+    }
+
+    if (!data.connected) {
+      alert('Conecta ROSBridge antes de ejecutar la ruta.');
+      return;
+    }
+
+    routeRunning = true;
+    document.getElementById('btnExecuteRoute').disabled = true;
+    document.getElementById('btnStopRoute').disabled = false;
+
+    await supabase
+      .from('rutas_robot')
+      .update({ estado: 'en_progreso', paso_actual: 1 })
+      .eq('id', routeId);
+
+    const { data: pasos, error } = await supabase
+      .from('ruta_pasos')
+      .select(`
+      id,
+      orden,
+      areas_mapa (
+        nombre,
+        coordenada_x,
+        coordenada_y
+      )
+    `)
+      .eq('ruta_id', routeId)
+      .order('orden', { ascending: true });
+
+    if (error || !pasos) {
+      console.error(error);
+      alert('Error cargando los pasos de la ruta.');
+      routeRunning = false;
+      return;
+    }
+
+    for (const paso of pasos) {
+      if (!routeRunning) break;
+
+      const area = paso.areas_mapa;
+
+      await supabase
+        .from('rutas_robot')
+        .update({ paso_actual: paso.orden })
+        .eq('id', routeId);
+
+      await supabase
+        .from('ruta_pasos')
+        .update({ estado: 'en_progreso' })
+        .eq('id', paso.id);
+
+      const targetX = Number(area.coordenada_x);
+      const targetY = Number(area.coordenada_y);
+      sendNavGoal(targetX, targetY);
+
+      console.log(`Yendo a ${area.nombre} (x=${targetX}, y=${targetY})`);
+
+      // Esperar a que el robot llegue al punto (distancia < 0.5m) o timeout de 120s
+      await new Promise(resolve => {
+        const THRESHOLD = 0.5; // metros
+        const TIMEOUT = 120000; // 120 segundos máximo
+        const POLL_INTERVAL = 1000; // comprobar cada segundo
+        let elapsed = 0;
+
+        const check = setInterval(() => {
+          elapsed += POLL_INTERVAL;
+
+          if (!routeRunning) {
+            clearInterval(check);
+            resolve();
+            return;
+          }
+
+          if (robotPose) {
+            const dist = Math.sqrt(
+              Math.pow(robotPose.x - targetX, 2) +
+              Math.pow(robotPose.y - targetY, 2)
+            );
+            if (dist < THRESHOLD) {
+              console.log(`Llegó a ${area.nombre} (dist=${dist.toFixed(2)}m)`);
+              clearInterval(check);
+              resolve();
+              return;
+            }
+          }
+
+          if (elapsed >= TIMEOUT) {
+            console.warn(`Timeout esperando llegar a ${area.nombre}`);
+            clearInterval(check);
+            resolve();
+          }
+        }, POLL_INTERVAL);
+      });
+
+      if (!routeRunning) break;
+
+      await supabase
+        .from('ruta_pasos')
+        .update({ estado: 'completado' })
+        .eq('id', paso.id);
+    }
+
+    await supabase
+      .from('rutas_robot')
+      .update({ estado: routeRunning ? 'completada' : 'cancelada' })
+      .eq('id', routeId);
+
+    routeRunning = false;
+    document.getElementById('btnExecuteRoute').disabled = false;
+    document.getElementById('btnStopRoute').disabled = true;
+
+    await loadSavedRoutes();
+  }
+
+  async function stopRoute() {
+    routeRunning = false;
+    stopNavigation();
+
+    const routeId = document.getElementById('savedRouteSelect')?.value;
+
+    if (routeId) {
+      await supabase
+        .from('rutas_robot')
+        .update({ estado: 'cancelada' })
+        .eq('id', routeId);
+    }
+
+    document.getElementById('btnExecuteRoute').disabled = false;
+    document.getElementById('btnStopRoute').disabled = true;
+
+    await loadSavedRoutes();
+  }
+
+
   document.getElementById('btnGoToCoord')?.addEventListener('click', goToCoordinates);
   document.getElementById('btnGoToArea')?.addEventListener('click', goToArea);
   document.getElementById('btnSaveArea')?.addEventListener('click', saveArea);
   document.getElementById('btnDeleteArea')?.addEventListener('click', deleteArea);
+  document.getElementById('btnAddRouteStep')?.addEventListener('click', addRouteStep);
+  document.getElementById('btnSaveRoute')?.addEventListener('click', saveRoute);
+  document.getElementById('btnExecuteRoute')?.addEventListener('click', executeRoute);
+  document.getElementById('btnStopRoute')?.addEventListener('click', stopRoute);
+
+  loadSavedRoutes();
   btnStopNav?.addEventListener('click', stopNavigation);
 
   // Estado inicial: botón detener visible (o manejado por CSS)

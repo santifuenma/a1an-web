@@ -209,7 +209,9 @@
               </div>
             </div>
             <div class="video-container" id="divCamera">
-              <img id="cameraFeed" class="camera-feed" src="http://localhost:8081/stream?topic=/camera/image_raw&type=mjpeg" alt="Vista en directo de la cámara del robot">
+              <img id="cameraFeed" class="camera-feed"
+                src="http://localhost:8081/stream?topic=/camera/image_raw&type=mjpeg"
+                alt="Vista en directo de la cámara del robot">
               <div class="camera-error" id="cameraError">Cámara no disponible</div>
               <div class="video-noise"></div>
               <div class="video-scanline"></div>
@@ -229,20 +231,23 @@
                 <span id="cameraModeText">Vista normal del robot</span>
                 <span id="visionStatusText">Conecta ROSBridge para ver detecciones</span>
               </div>
-              
+
               <div class="detection-summary" id="detectionSummary">
                 <span id="detectionObjectLabel">Sin objetos</span>
                 <span id="detectionConfidence">--</span>
                 <span id="detectionPosition">--</span>
               </div>
-              
+            </div>
+
             <div
               style="padding: 0.6rem 1rem; background: var(--color-white); border-top: 1px solid var(--color-border); display:flex; align-items:center; justify-content:space-between;">
-              <span style="font-size:var(--font-size-xs); color:var(--color-gray);">Vista en tiempo real del robot
+              <span style="font-size:var(--font-size-xs); color:var(--color-gray);">
+                Vista en tiempo real del robot
               </span>
               <span
-                style="font-size:var(--font-size-xs); color:var(--color-gray); font-weight:600; cursor:not-allowed; opacity: 0.5; pointer-events: none;">Ver
-                control completo →</span>
+                style="font-size:var(--font-size-xs); color:var(--color-gray); font-weight:600; cursor:not-allowed; opacity: 0.5; pointer-events: none;">
+                Ver control completo →
+              </span>
             </div>
           </div>
 
@@ -341,9 +346,10 @@
           <!-- Bloque Derecho: Controles de Navegación unificados en Pestañas -->
           <div class="nav-controls-widget">
             <div class="nav-tabs-header">
-              <button class="nav-tab active" onclick="switchNavTab('manual')">Manual</button>
-              <button class="nav-tab" onclick="switchNavTab('coords')">Coord</button>
-              <button class="nav-tab" onclick="switchNavTab('area')">Área</button>
+              <button class="nav-tab active" onclick="switchNavTab(event, 'manual')">Manual</button>
+              <button class="nav-tab" onclick="switchNavTab(event, 'coords')">Coord</button>
+              <button class="nav-tab" onclick="switchNavTab(event, 'area')">Área</button>
+              <button class="nav-tab" onclick="switchNavTab(event, 'rutas')">Rutas</button>
             </div>
 
             <!-- Pestaña 1: Control Manual -->
@@ -352,7 +358,9 @@
                 <div class="ros-panel-header" style="margin-bottom:0px;">
                   <div class="ros-panel-title">
                     <div>
-                      <strong style="font-size:0.85rem; color:var(--color-primary); text-transform:uppercase; letter-spacing:0.05em;">Control Manual</strong>
+                      <strong
+                        style="font-size:0.85rem; color:var(--color-primary); text-transform:uppercase; letter-spacing:0.05em;">Control
+                        Manual</strong>
                       <span class="ros-panel-subtitle">TurtleBot · ROSBridge</span>
                     </div>
                   </div>
@@ -474,6 +482,47 @@
                 <button class="btn btn-secondary" style="flex: 1; padding: 0.65rem;" id="btnSaveArea">Guardar</button>
               </div>
             </div>
+
+            <!-- Pestaña 4: Rutas -->
+            <div class="nav-tab-content" id="tab-rutas" style="padding: 1.5rem;">
+              <div class="nav-input-group">
+                <label for="newRouteName">Nombre de la ruta</label>
+                <input type="text" id="newRouteName" class="nav-coord-input" placeholder="Ej. Ruta de mañana">
+              </div>
+
+              <div class="nav-input-group">
+                <label for="routeAreaSelect">Añadir área</label>
+                <div style="display:flex; gap:0.5rem;">
+                  <select id="routeAreaSelect" class="nav-area-select" style="flex:1;"></select>
+                  <button class="btn btn-secondary" id="btnAddRouteStep" type="button">Añadir</button>
+                </div>
+              </div>
+
+              <div class="route-steps-box">
+                <strong>Pasos de la ruta</strong>
+                <ol id="routeStepsList"></ol>
+              </div>
+
+              <button class="btn btn-primary nav-action-btn" id="btnSaveRoute">
+                Guardar ruta
+              </button>
+
+              <hr style="border:none; border-top:1px solid var(--color-border); margin: 1rem 0;" />
+
+              <div class="nav-input-group">
+                <label for="savedRouteSelect">Ruta guardada</label>
+                <select id="savedRouteSelect" class="nav-area-select"></select>
+              </div>
+
+              <div style="display:flex; gap:0.5rem;">
+                <button class="btn btn-primary nav-action-btn" id="btnExecuteRoute" disabled>
+                  Ejecutar
+                </button>
+                <button class="btn btn-danger nav-action-btn" id="btnStopRoute" disabled>
+                  Parar
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -543,10 +592,11 @@
 
 
   <script>
-    function switchNavTab(tabId) {
+    function switchNavTab(event, tabId) {
       document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.nav-tab-content').forEach(c => c.classList.remove('active'));
-      event.target.classList.add('active');
+
+      event.currentTarget.classList.add('active');
       document.getElementById('tab-' + tabId).classList.add('active');
     }
   </script>
