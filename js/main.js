@@ -92,8 +92,10 @@ document.addEventListener('DOMContentLoaded', () => {
           const { data: { session } } = await supabase.auth.getSession();
           
           let insertData = {
+            nombre_remitente: name,
+            email_remitente: email,
             asunto: `Contacto web de ${name}`, 
-            mensaje: `Nombre: ${name}\nEmail: ${email}\n\nMensaje:\n${message}`
+            mensaje: message
           };
 
           // Si hay sesión, lo vinculamos a su usuario
