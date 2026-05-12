@@ -289,27 +289,13 @@
 
 .topbar-notification-badge {
   position: absolute;
-  top: 0px;
-  right: 0px;
-  min-width: 18px;
-  height: 18px;
+  top: 4px;
+  right: 4px;
+  width: 8px;
+  height: 8px;
   background: var(--color-danger);
-  border-radius: var(--radius-full);
+  border-radius: 50%;
   border: 2px solid var(--color-white);
-  font-size: 0.6rem;
-  font-weight: 700;
-  color: var(--color-white);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 0 4px;
-  line-height: 1;
-  animation: notifPulse 2s ease-in-out infinite;
-}
-
-@keyframes notifPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
-  50% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
 }
 
 .topbar-user {
@@ -395,7 +381,6 @@
   .dashboard-top {
     grid-template-columns: 1fr 1fr;
   }
-
   .dashboard-top .camera-widget {
     grid-column: 1 / 3;
     grid-row: auto;
@@ -406,7 +391,6 @@
   .dashboard-top {
     grid-template-columns: 1fr;
   }
-
   .dashboard-top .camera-widget {
     grid-column: 1;
   }
@@ -715,29 +699,12 @@
   height: 20px;
 }
 
-.widget-icon-accent {
-  background: var(--color-accent);
-}
-
-.widget-icon-primary {
-  background: var(--color-primary);
-}
-
-.widget-icon-secondary {
-  background: var(--color-secondary);
-}
-
-.widget-icon-success {
-  background: var(--color-success);
-}
-
-.widget-icon-warning {
-  background: var(--color-warning);
-}
-
-.widget-icon-danger {
-  background: var(--color-danger);
-}
+.widget-icon-accent { background: var(--color-accent); }
+.widget-icon-primary { background: var(--color-primary); }
+.widget-icon-secondary { background: var(--color-secondary); }
+.widget-icon-success { background: var(--color-success); }
+.widget-icon-warning { background: var(--color-warning); }
+.widget-icon-danger { background: var(--color-danger); }
 
 .widget-value {
   font-size: var(--font-size-3xl);
@@ -760,24 +727,10 @@
   margin-right: var(--spacing-2);
 }
 
-.status-dot.online {
-  background: var(--color-success);
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
-}
-
-.status-dot.offline {
-  background: var(--color-gray);
-}
-
-.status-dot.warning {
-  background: var(--color-warning);
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
-}
-
-.status-dot.error {
-  background: var(--color-danger);
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
-}
+.status-dot.online { background: var(--color-success); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2); }
+.status-dot.offline { background: var(--color-gray); }
+.status-dot.warning { background: var(--color-warning); box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2); }
+.status-dot.error { background: var(--color-danger); box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2); }
 
 /* --- Battery Bar --- */
 .battery-bar {
@@ -794,17 +747,9 @@
   transition: width 0.6s ease, background-color 0.3s ease;
 }
 
-.battery-bar-fill.high {
-  background: var(--color-success);
-}
-
-.battery-bar-fill.medium {
-  background: var(--color-warning);
-}
-
-.battery-bar-fill.low {
-  background: var(--color-danger);
-}
+.battery-bar-fill.high { background: var(--color-success); }
+.battery-bar-fill.medium { background: var(--color-warning); }
+.battery-bar-fill.low { background: var(--color-danger); }
 
 /* --- Toggle Switch --- */
 .toggle-switch {
@@ -841,11 +786,11 @@
   transition: transform var(--transition-base);
 }
 
-.toggle-switch input:checked+.toggle-slider {
+.toggle-switch input:checked + .toggle-slider {
   background: var(--color-accent);
 }
 
-.toggle-switch input:checked+.toggle-slider::after {
+.toggle-switch input:checked + .toggle-slider::after {
   transform: translateX(24px);
 }
 
@@ -1009,36 +954,11 @@
   font-size: var(--font-size-sm);
 }
 
-.activity-icon.power {
-  background: #dbeafe;
-  color: #1e40af;
-}
 .activity-icon.power { background: #dbeafe; color: #1e40af; }
 .activity-icon.exercise { background: #d1fae5; color: #065f46; }
 .activity-icon.alert { background: #fef3c7; color: #92400e; }
 .activity-icon.sync { background: #ede9fe; color: #5b21b6; }
 .activity-icon.error { background: #fee2e2; color: #991b1b; }
-.activity-icon.battery { background: #ffedd5; color: #9a3412; }
-
-.activity-icon.exercise {
-  background: #d1fae5;
-  color: #065f46;
-}
-
-.activity-icon.alert {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.activity-icon.sync {
-  background: #ede9fe;
-  color: #5b21b6;
-}
-
-.activity-icon.error {
-  background: #fee2e2;
-  color: #991b1b;
-}
 
 .activity-info {
   flex: 1;
@@ -1553,15 +1473,6 @@
   min-height: 120px;
 }
 
-.schedule-day.today {
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 2px rgba(83, 178, 184, 0.15);
-}
-
-.schedule-day.today .schedule-day-header {
-  color: var(--color-accent);
-}
-
 .schedule-day-header {
   font-size: var(--font-size-xs);
   font-weight: 600;
@@ -1662,8 +1573,7 @@
 }
 
 .camera-widget.grid-camera {
-  grid-column: span 2;
-  /* Spans 2 columns to be more visible but smaller than before */
+  grid-column: span 2; /* Spans 2 columns to be more visible but smaller than before */
 }
 
 @media (max-width: 992px) {
@@ -1705,7 +1615,7 @@
 }
 
 .camera-detection-toggle.active {
-  background: rgba(83, 178, 184, 0.12);
+  background: rgba(83,178,184,0.12);
   border-color: var(--color-accent);
   color: var(--color-secondary);
 }
@@ -1742,7 +1652,7 @@
   justify-content: center;
   padding: var(--spacing-6);
   color: #fff;
-  background: radial-gradient(circle at center, rgba(239, 68, 68, 0.22), rgba(0, 0, 0, 0.9));
+  background: radial-gradient(circle at center, rgba(239,68,68,0.22), rgba(0,0,0,0.9));
   font-size: var(--font-size-sm);
   font-weight: 600;
   text-align: center;
@@ -1807,7 +1717,7 @@
 
 .detection-summary.active span:first-child {
   color: var(--color-secondary);
-  background: rgba(83, 178, 184, 0.12);
+  background: rgba(83,178,184,0.12);
 }
 
 .video-overlay {
@@ -1824,7 +1734,7 @@
   text-transform: uppercase;
   font-size: 0.7rem;
   letter-spacing: 0.08em;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.9);
 }
 
 .overlay-top {
@@ -1882,8 +1792,8 @@
 .video-noise {
   position: absolute;
   inset: 0;
-  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%),
-    linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+  background: linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.15) 50%), 
+              linear-gradient(90deg, rgba(255,0,0,0.03), rgba(0,255,0,0.01), rgba(0,0,255,0.03));
   background-size: 100% 3px, 3px 100%;
   z-index: 2;
   pointer-events: none;
@@ -1896,7 +1806,7 @@
   left: 0;
   width: 100%;
   height: 20%;
-  background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.05), transparent);
+  background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.05), transparent);
   z-index: 3;
   pointer-events: none;
   animation: camera-scanline 10s linear infinite;
@@ -1911,27 +1821,13 @@
 }
 
 @keyframes camera-blink {
-
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 0.3;
-    transform: scale(0.9);
-  }
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(0.9); }
 }
 
 @keyframes camera-scanline {
-  0% {
-    transform: translateY(-100%);
-  }
-
-  100% {
-    transform: translateY(500%);
-  }
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(500%); }
 }
 
 @media (max-width: 768px) {
@@ -2115,7 +2011,6 @@
   .profile-page-layout {
     grid-template-columns: 1fr;
   }
-
   .profile-avatar-card {
     position: static;
   }
@@ -2125,7 +2020,6 @@
   .profile-form-row {
     grid-template-columns: 1fr;
   }
-
   .profile-section {
     padding: var(--spacing-6);
   }
@@ -2265,17 +2159,8 @@
 }
 
 @keyframes nav-pulse {
-
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 0.4;
-    transform: scale(0.75);
-  }
+  0%, 100% { opacity: 1; transform: scale(1);    }
+  50%       { opacity: 0.4; transform: scale(0.75); }
 }
 
 /* ============================================
@@ -2451,16 +2336,8 @@
   .ros-control-panel {
     grid-column: 1;
   }
-
-  .dpad-btn {
-    width: 58px;
-    height: 58px;
-  }
-
-  .dpad-stop {
-    width: 50px;
-    height: 50px;
-  }
+  .dpad-btn { width: 58px; height: 58px; }
+  .dpad-stop { width: 50px; height: 50px; }
 }
 
 /* ============================================
@@ -2568,7 +2445,6 @@
   .logout-modal {
     padding: var(--spacing-8) var(--spacing-6);
   }
-
   .logout-modal-actions {
     flex-direction: column;
   }
@@ -2611,23 +2487,12 @@
 }
 
 @keyframes loader-spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 
 @keyframes loader-pulse {
-
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 0.7;
-    transform: scale(0.95);
-  }
+  0%, 100% { opacity: 1;   transform: scale(1);    }
+  50%       { opacity: 0.7; transform: scale(0.95); }
 }
 
 
@@ -2655,7 +2520,6 @@
   .dashboard-top-grid {
     grid-template-columns: 1fr 1fr;
   }
-
   .dashboard-top-grid .camera-widget {
     grid-column: 1 / 3;
     grid-row: auto;
@@ -2727,7 +2591,7 @@
 }
 
 .nav-tab:hover {
-  background: rgba(0, 0, 0, 0.02);
+  background: rgba(0,0,0,0.02);
   color: var(--color-text);
 }
 
@@ -2751,61 +2615,12 @@
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(5px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @media (max-width: 900px) {
   .dashboard-map-nav-grid {
     grid-template-columns: 1fr;
   }
-}
-
-/* Pestaña 4: Rutas */
-.route-steps-box {
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 0.8rem 1rem;
-  min-height: 90px;
-  font-size: var(--font-size-sm);
-}
-
-.route-steps-box strong {
-  display: block;
-  margin-bottom: 0.5rem;
-  color: var(--color-primary);
-}
-
-#routeStepsList {
-  margin: 0;
-  padding-left: 1.2rem;
-}
-
-#routeStepsList li {
-  margin-bottom: 0.35rem;
-  color: var(--color-text);
-}
-
-.route-step-remove {
-  margin-left: 0.5rem;
-  color: var(--color-danger);
-  cursor: pointer;
-  font-weight: 700;
-}
-
-#tab-rutas {
-  justify-content: flex-start;
-  gap: 1rem;
-}
-
-#tab-rutas .nav-action-btn {
-  margin-top: 0.25rem;
 }
