@@ -1474,6 +1474,15 @@
   min-height: 120px;
 }
 
+.schedule-day.today {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px rgba(83, 178, 184, 0.15);
+}
+
+.schedule-day.today .schedule-day-header {
+  color: var(--color-accent);
+}
+
 .schedule-day-header {
   font-size: var(--font-size-xs);
   font-weight: 600;
