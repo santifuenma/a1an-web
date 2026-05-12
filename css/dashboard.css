@@ -999,6 +999,12 @@
   background: #dbeafe;
   color: #1e40af;
 }
+.activity-icon.power { background: #dbeafe; color: #1e40af; }
+.activity-icon.exercise { background: #d1fae5; color: #065f46; }
+.activity-icon.alert { background: #fef3c7; color: #92400e; }
+.activity-icon.sync { background: #ede9fe; color: #5b21b6; }
+.activity-icon.error { background: #fee2e2; color: #991b1b; }
+.activity-icon.battery { background: #ffedd5; color: #9a3412; }
 
 .activity-icon.exercise {
   background: #d1fae5;
@@ -1531,6 +1537,15 @@
   border-radius: var(--radius-md);
   padding: var(--spacing-3);
   min-height: 120px;
+}
+
+.schedule-day.today {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px rgba(83, 178, 184, 0.15);
+}
+
+.schedule-day.today .schedule-day-header {
+  color: var(--color-accent);
 }
 
 .schedule-day-header {
