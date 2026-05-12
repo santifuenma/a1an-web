@@ -15,7 +15,8 @@ document.addEventListener('DOMContentLoaded', event => {
     ros: null,
     rosbridge_address: defaultRosbridgeUrl,
     connected: false,
-    detectionsTopic: null
+    detectionsTopic: null,
+    manualDisconnect: false
   };
 
   const connectBtn = document.getElementById('rosbridgeConnectBtn');
@@ -60,6 +61,10 @@ document.addEventListener('DOMContentLoaded', event => {
     // Habilitar / deshabilitar botones
     moveButtons.forEach(btn => { if (btn) btn.disabled = !isConnected; });
 
+    // Actualizar botón Ejecutar ruta según conexión
+    const btnExecuteRoute = document.getElementById('btnExecuteRoute');
+    if (btnExecuteRoute) btnExecuteRoute.disabled = !isConnected;
+
     // Cambiar el botón entre Conectar / Desconectar
     const iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>`;
     connectBtn.innerHTML = iconSvg + (isConnected ? ' Desconectar' : ' Conectar');
@@ -77,9 +82,24 @@ document.addEventListener('DOMContentLoaded', event => {
 
     data.ros.on('connection', () => {
       data.connected = true;
+      data.manualDisconnect = false;
       setStatus('connected');
       subscribeDetections();
       subscribeToMap();
+
+      // Persist connection for auto-reconnect
+      localStorage.setItem('rosbridge_url', data.rosbridge_address);
+      localStorage.setItem('rosbridge_autoconnect', 'true');
+
+      // Only notify on manual connect, not auto-reconnect
+      if (!data.isAutoReconnect) {
+        window.createNotification?.({
+          titulo: 'Robot conectado',
+          mensaje: 'Se ha establecido conexión con el robot A1AN vía ROSBridge.',
+          tipo: 'robot'
+        });
+      }
+      data.isAutoReconnect = false;
     });
 
     data.ros.on('error', (error) => {
@@ -97,16 +117,35 @@ document.addEventListener('DOMContentLoaded', event => {
       unsubscribeDetections();
       window.setVisionConnectionState?.('disconnected');
       drawMapDisconnectedOverlay();
+
+      // Only notify if not a manual disconnect (to avoid duplicates)
+      if (!data.manualDisconnect) {
+        window.createNotification?.({
+          titulo: 'Robot desconectado',
+          mensaje: 'Se ha perdido la conexión con el robot A1AN.',
+          tipo: 'robot'
+        });
+      }
     });
   }
 
   // --- Desconectar ---
   function disconnect() {
+    data.manualDisconnect = true;
     unsubscribeDetections();
     if (data.ros) data.ros.close();
     data.connected = false;
     setStatus('disconnected');
     window.setVisionConnectionState?.('disconnected');
+
+    // Clear auto-reconnect
+    localStorage.removeItem('rosbridge_autoconnect');
+
+    window.createNotification?.({
+      titulo: 'Robot desconectado',
+      mensaje: 'Has desconectado manualmente el robot A1AN.',
+      tipo: 'robot'
+    });
   }
 
   function subscribeDetections() {
@@ -187,10 +226,15 @@ document.addEventListener('DOMContentLoaded', event => {
   // Coordenadas de áreas dinámicas
   let areas = {};
 
+  // Pestaña 4: Rutas
+  let routeSteps = [];
+  let routeRunning = false;
+
   async function loadAreas() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
-    const { data, error } = await supabase
+
+    const { data: areasData, error } = await supabase
       .from('areas_mapa')
       .select('*')
       .eq('usuario_id', session.user.id)
@@ -205,8 +249,8 @@ document.addEventListener('DOMContentLoaded', event => {
     const sel = document.getElementById('navAreaSelect');
     if (sel) {
       sel.innerHTML = '';
-      if (data && data.length > 0) {
-        data.forEach(area => {
+      if (areasData && areasData.length > 0) {
+        areasData.forEach(area => {
           areas[area.id] = { x: area.coordenada_x, y: area.coordenada_y };
           const opt = document.createElement('option');
           opt.value = area.id;
@@ -217,6 +261,63 @@ document.addEventListener('DOMContentLoaded', event => {
         sel.innerHTML = '<option disabled selected>Sin áreas guardadas</option>';
       }
     }
+
+    // Llamada a función para rutas
+    await loadRouteAreaSelect();
+  }
+
+  // Pestaña 4: Rutas
+  async function loadRouteAreaSelect() {
+    const sel = document.getElementById('routeAreaSelect');
+    if (!sel) return;
+
+    sel.innerHTML = '';
+
+    Object.entries(areas).forEach(([id, coords]) => {
+      const areaOption = document.querySelector(`#navAreaSelect option[value="${id}"]`);
+      const name = areaOption ? areaOption.textContent : `Área ${id}`;
+
+      const opt = document.createElement('option');
+      opt.value = id;
+      opt.textContent = name;
+      sel.appendChild(opt);
+    });
+  }
+
+  function renderRouteSteps() {
+    const list = document.getElementById('routeStepsList');
+    if (!list) return;
+
+    list.innerHTML = '';
+
+    routeSteps.forEach((step, index) => {
+      const li = document.createElement('li');
+      li.innerHTML = `
+      ${step.nombre}
+      <span class="route-step-remove" data-index="${index}">×</span>
+    `;
+      list.appendChild(li);
+    });
+
+    document.querySelectorAll('.route-step-remove').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const index = parseInt(btn.dataset.index);
+        routeSteps.splice(index, 1);
+        renderRouteSteps();
+      });
+    });
+  }
+
+  function addRouteStep() {
+    const sel = document.getElementById('routeAreaSelect');
+    if (!sel || !sel.value) return;
+
+    routeSteps.push({
+      area_id: parseInt(sel.value),
+      nombre: sel.options[sel.selectedIndex].textContent
+    });
+
+    renderRouteSteps();
   }
 
   async function saveArea() {
@@ -256,6 +357,11 @@ document.addEventListener('DOMContentLoaded', event => {
       console.error('Error guardando el área:', error);
       alert('Error al guardar. Inténtalo de nuevo.');
     } else {
+      window.createNotification?.({
+        titulo: `Área "${name}" guardada`,
+        mensaje: `Se ha guardado el área "${name}" en las coordenadas (${x.toFixed(2)}, ${y.toFixed(2)}).`,
+        tipo: 'sistema'
+      });
       document.getElementById('newAreaName').value = '';
       loadAreas();
     }
@@ -329,7 +435,14 @@ document.addEventListener('DOMContentLoaded', event => {
     const areaKey = sel.value;
     const coords = areas[areaKey];
     if (coords) {
+      const areaName = sel.options[sel.selectedIndex]?.text || areaKey;
       sendNavGoal(coords.x, coords.y);
+
+      window.createNotification?.({
+        titulo: `Navegando a ${areaName}`,
+        mensaje: `Se ha enviado al robot al área "${areaName}" (x=${coords.x.toFixed(2)}, y=${coords.y.toFixed(2)}).`,
+        tipo: 'ruta'
+      });
     }
   }
 
@@ -666,12 +779,311 @@ document.addEventListener('DOMContentLoaded', event => {
     initMapInteraction();
   }
 
+  async function saveRoute() {
+    const name = document.getElementById('newRouteName')?.value.trim();
+
+    if (!name) {
+      alert('Introduce un nombre para la ruta.');
+      return;
+    }
+
+    if (routeSteps.length === 0) {
+      alert('Añade al menos un área a la ruta.');
+      return;
+    }
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const { data: robot } = await supabase
+      .from('robots')
+      .select('id')
+      .eq('usuario_id', session.user.id)
+      .maybeSingle();
+
+    const { data: route, error: routeError } = await supabase
+      .from('rutas_robot')
+      .insert({
+        usuario_id: session.user.id,
+        robot_id: robot?.id ?? null,
+        nombre: name,
+        estado: 'pendiente',
+        paso_actual: 1,
+        activa: true
+      })
+      .select()
+      .single();
+
+    if (routeError) {
+      console.error(routeError);
+      alert('Error al guardar la ruta.');
+      return;
+    }
+
+    const pasos = routeSteps.map((step, index) => ({
+      ruta_id: route.id,
+      area_mapa_id: step.area_id,
+      orden: index + 1,
+      estado: 'pendiente'
+    }));
+
+    const { error: stepsError } = await supabase
+      .from('ruta_pasos')
+      .insert(pasos);
+
+    if (stepsError) {
+      console.error(stepsError);
+      alert('La ruta se creó, pero falló al guardar los pasos.');
+      return;
+    }
+
+    document.getElementById('newRouteName').value = '';
+    routeSteps = [];
+    renderRouteSteps();
+    await loadSavedRoutes();
+
+    window.createNotification?.({
+      titulo: `Ruta "${name}" creada`,
+      mensaje: `Se ha guardado la ruta "${name}" con ${pasos.length} paso(s).`,
+      tipo: 'ruta'
+    });
+
+    alert('Ruta guardada correctamente.');
+  }
+
+  async function loadSavedRoutes() {
+    const sel = document.getElementById('savedRouteSelect');
+    const btnExecute = document.getElementById('btnExecuteRoute');
+
+    if (!sel) return;
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const { data: routes, error } = await supabase
+      .from('rutas_robot')
+      .select('id, nombre, estado')
+      .eq('usuario_id', session.user.id)
+      .eq('activa', true)
+      .order('id', { ascending: false });
+
+    if (error) {
+      console.error('Error cargando rutas:', error);
+      return;
+    }
+
+    sel.innerHTML = '';
+
+    if (!routes || routes.length === 0) {
+      sel.innerHTML = '<option disabled selected>Sin rutas guardadas</option>';
+      if (btnExecute) btnExecute.disabled = true;
+      return;
+    }
+
+    routes.forEach(route => {
+      const opt = document.createElement('option');
+      opt.value = route.id;
+      opt.textContent = route.nombre;
+      sel.appendChild(opt);
+    });
+
+    if (btnExecute) btnExecute.disabled = !data.connected;
+  }
+
+  async function executeRoute() {
+    const sel = document.getElementById('savedRouteSelect');
+    const routeId = sel?.value;
+
+    if (!routeId) {
+      alert('Selecciona una ruta.');
+      return;
+    }
+
+    if (!data.connected) {
+      alert('Conecta ROSBridge antes de ejecutar la ruta.');
+      return;
+    }
+
+    routeRunning = true;
+    document.getElementById('btnExecuteRoute').disabled = true;
+    document.getElementById('btnStopRoute').disabled = false;
+
+    await supabase
+      .from('rutas_robot')
+      .update({ estado: 'en_progreso', paso_actual: 1 })
+      .eq('id', routeId);
+
+    const { data: pasos, error } = await supabase
+      .from('ruta_pasos')
+      .select(`
+      id,
+      orden,
+      areas_mapa (
+        nombre,
+        coordenada_x,
+        coordenada_y
+      )
+    `)
+      .eq('ruta_id', routeId)
+      .order('orden', { ascending: true });
+
+    if (error || !pasos) {
+      console.error(error);
+      alert('Error cargando los pasos de la ruta.');
+      routeRunning = false;
+      return;
+    }
+
+    for (const paso of pasos) {
+      if (!routeRunning) break;
+
+      const area = paso.areas_mapa;
+
+      await supabase
+        .from('rutas_robot')
+        .update({ paso_actual: paso.orden })
+        .eq('id', routeId);
+
+      await supabase
+        .from('ruta_pasos')
+        .update({ estado: 'en_progreso' })
+        .eq('id', paso.id);
+
+      const targetX = Number(area.coordenada_x);
+      const targetY = Number(area.coordenada_y);
+      sendNavGoal(targetX, targetY);
+
+      console.log(`Yendo a ${area.nombre} (x=${targetX}, y=${targetY})`);
+
+      // Esperar a que el robot llegue al punto (distancia < 0.5m) o timeout de 120s
+      await new Promise(resolve => {
+        const THRESHOLD = 0.5; // metros
+        const TIMEOUT = 120000; // 120 segundos máximo
+        const POLL_INTERVAL = 1000; // comprobar cada segundo
+        let elapsed = 0;
+
+        const check = setInterval(() => {
+          elapsed += POLL_INTERVAL;
+
+          if (!routeRunning) {
+            clearInterval(check);
+            resolve();
+            return;
+          }
+
+          if (robotPose) {
+            const dist = Math.sqrt(
+              Math.pow(robotPose.x - targetX, 2) +
+              Math.pow(robotPose.y - targetY, 2)
+            );
+            if (dist < THRESHOLD) {
+              console.log(`Llegó a ${area.nombre} (dist=${dist.toFixed(2)}m)`);
+
+              window.createNotification?.({
+                titulo: `Robot llegó a ${area.nombre}`,
+                mensaje: `El robot ha llegado al área "${area.nombre}" (paso ${paso.orden}).`,
+                tipo: 'ruta'
+              });
+
+              clearInterval(check);
+              resolve();
+              return;
+            }
+          }
+
+          if (elapsed >= TIMEOUT) {
+            console.warn(`Timeout esperando llegar a ${area.nombre}`);
+            clearInterval(check);
+            resolve();
+          }
+        }, POLL_INTERVAL);
+      });
+
+      if (!routeRunning) break;
+
+      await supabase
+        .from('ruta_pasos')
+        .update({ estado: 'completado' })
+        .eq('id', paso.id);
+    }
+
+    const routeName = document.getElementById('savedRouteSelect')?.options[
+      document.getElementById('savedRouteSelect')?.selectedIndex
+    ]?.textContent || 'Ruta';
+
+    await supabase
+      .from('rutas_robot')
+      .update({ estado: routeRunning ? 'completada' : 'cancelada' })
+      .eq('id', routeId);
+
+    if (routeRunning) {
+      window.createNotification?.({
+        titulo: 'Ruta completada',
+        mensaje: `El robot ha completado la ruta "${routeName}" correctamente.`,
+        tipo: 'ruta'
+      });
+    }
+
+    routeRunning = false;
+    document.getElementById('btnExecuteRoute').disabled = false;
+    document.getElementById('btnStopRoute').disabled = true;
+
+    await loadSavedRoutes();
+  }
+
+  async function stopRoute() {
+    routeRunning = false;
+    stopNavigation();
+
+    const routeId = document.getElementById('savedRouteSelect')?.value;
+    const routeName = document.getElementById('savedRouteSelect')?.options[
+      document.getElementById('savedRouteSelect')?.selectedIndex
+    ]?.textContent || 'Ruta';
+
+    window.createNotification?.({
+      titulo: 'Ruta detenida',
+      mensaje: `La ruta "${routeName}" ha sido detenida manualmente.`,
+      tipo: 'ruta'
+    });
+
+    if (routeId) {
+      await supabase
+        .from('rutas_robot')
+        .update({ estado: 'cancelada' })
+        .eq('id', routeId);
+    }
+
+    document.getElementById('btnExecuteRoute').disabled = false;
+    document.getElementById('btnStopRoute').disabled = true;
+
+    await loadSavedRoutes();
+  }
+
+
   document.getElementById('btnGoToCoord')?.addEventListener('click', goToCoordinates);
   document.getElementById('btnGoToArea')?.addEventListener('click', goToArea);
   document.getElementById('btnSaveArea')?.addEventListener('click', saveArea);
   document.getElementById('btnDeleteArea')?.addEventListener('click', deleteArea);
+  document.getElementById('btnAddRouteStep')?.addEventListener('click', addRouteStep);
+  document.getElementById('btnSaveRoute')?.addEventListener('click', saveRoute);
+  document.getElementById('btnExecuteRoute')?.addEventListener('click', executeRoute);
+  document.getElementById('btnStopRoute')?.addEventListener('click', stopRoute);
+
+  loadSavedRoutes();
   btnStopNav?.addEventListener('click', stopNavigation);
 
   // Estado inicial: botón detener visible (o manejado por CSS)
   if (btnStopNav) btnStopNav.style.display = 'inline-flex';
+
+  // --- Auto-reconnect from localStorage ---
+  const savedUrl = localStorage.getItem('rosbridge_url');
+  const shouldAutoConnect = localStorage.getItem('rosbridge_autoconnect');
+  if (savedUrl && shouldAutoConnect === 'true' && !data.connected) {
+    const urlInput = document.getElementById('rosbridgeUrl');
+    if (urlInput) urlInput.value = savedUrl;
+    data.rosbridge_address = savedUrl;
+    console.log('Auto-reconnecting to ROSBridge:', savedUrl);
+    data.isAutoReconnect = true;
+    connect();
+  }
 });

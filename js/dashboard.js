@@ -57,6 +57,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   initCameraTimestamp();
   initWeeklyPlan();
   initDashboardData(user);
+  initNotificationBadges(user);
+
 });
 
 // --- Patient Welcome ---
@@ -69,13 +71,23 @@ function initPatientWelcome(user) {
   if (heading) {
     const hour = new Date().getHours();
     const greeting = hour < 12 ? 'Buenos días' : hour < 20 ? 'Buenas tardes' : 'Buenas noches';
-    heading.innerHTML = `${greeting}, <span id="welcomeName">${firstName}</span> 👋`;
+    heading.innerHTML = `${greeting}, <span id="welcomeName">${firstName}</span>`;
   }
 
   if (dateEl) {
     const now = new Date();
     const options = { weekday: 'long', day: 'numeric', month: 'long' };
     dateEl.textContent = `Hoy es ${now.toLocaleDateString('es-ES', options)}. ¡Sigue adelante con tu rehabilitación!`;
+  }
+
+  // Streak: days since account creation
+  const streakEl = document.getElementById('streakCount');
+  if (streakEl && user.created_at) {
+    const created = new Date(user.created_at);
+    const now = new Date();
+    const diffMs = now - created;
+    const diffDays = Math.max(1, Math.floor(diffMs / 86400000));
+    streakEl.textContent = diffDays;
   }
 }
 
@@ -117,7 +129,7 @@ function initCameraFeed() {
     if (!statusBadge) return;
     statusBadge.className = 'badge ' + (unavailable ? 'badge-danger' : state === 'loading' ? 'badge-warning' : 'badge-success');
     statusBadge.textContent = unavailable ? 'Sin señal' : state === 'loading' ? 'Conectando' : 'En línea';
-    
+
     if (unavailable) {
       console.warn("Cámara: Sin señal en " + CAMERA_STREAM_URL);
     }
@@ -738,26 +750,22 @@ async function loadWeeklyPlan(userId) {
     card.innerHTML = `
       <div class="week-day-name">${day.label}</div>
       <div class="week-day-num">${dayNumber}</div>
-      <div class="week-day-exercise-icon" style="background: ${
-        exerciseForDay ? 'rgba(83, 178, 184, 0.15)' : 'rgba(0,0,0,0.05)'
-      }; color: ${
-        exerciseForDay ? 'var(--color-accent)' : 'var(--color-gray)'
+      <div class="week-day-exercise-icon" style="background: ${exerciseForDay ? 'rgba(83, 178, 184, 0.15)' : 'rgba(0,0,0,0.05)'
+      }; color: ${exerciseForDay ? 'var(--color-accent)' : 'var(--color-gray)'
       };">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
           stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          ${
-            exerciseForDay
-              ? '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />'
-              : '<circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/>'
-          }
+          ${exerciseForDay
+        ? '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />'
+        : '<circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/>'
+      }
         </svg>
       </div>
       <div class="week-day-exercise-name">
-        ${
-          exerciseForDay
-            ? exerciseForDay.ejercicios.titulo
-            : 'Descanso'
-        }
+        ${exerciseForDay
+        ? exerciseForDay.ejercicios.titulo
+        : 'Descanso'
+      }
       </div>
     `;
 
@@ -778,3 +786,47 @@ function showToast(message, type = '') {
   if (type) toast.classList.add('toast-' + type);
   setTimeout(() => { toast.classList.remove('show'); }, 3500);
 }
+
+// --- Global Notification Badge (runs on ALL pages) ---
+async function initNotificationBadges(user) {
+  await updateGlobalBadges(user.id);
+  setInterval(() => updateGlobalBadges(user.id), 15000);
+}
+
+async function updateGlobalBadges(userId) {
+  try {
+    const { count, error } = await supabase
+      .from('notificaciones')
+      .select('*', { count: 'exact', head: true })
+      .eq('usuario_id', userId)
+      .eq('leida', false);
+
+    if (error) return;
+
+    const unread = count || 0;
+
+    // Update topbar badge (all pages)
+    document.querySelectorAll('.topbar-notification-badge').forEach(badge => {
+      if (unread > 0) {
+        badge.textContent = unread > 9 ? '9+' : unread;
+        badge.style.display = 'flex';
+      } else {
+        badge.style.display = 'none';
+      }
+    });
+
+    // Update sidebar badge
+    const sidebarBadge = document.getElementById('sidebarNotifBadge');
+    if (sidebarBadge) {
+      if (unread > 0) {
+        sidebarBadge.textContent = unread;
+        sidebarBadge.style.display = 'flex';
+      } else {
+        sidebarBadge.style.display = 'none';
+      }
+    }
+  } catch (err) {
+    console.error('Error updating notification badges:', err);
+  }
+}
+
