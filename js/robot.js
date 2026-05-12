@@ -1,23 +1,60 @@
 /* ============================================
    Safe&Sound Robotics — A1AN Web
    Mi Robot — estado, batería, sync, diagnóstico
+   ============================================
+   Datos coherentes con la tabla `robots` y la
+   estructura de componentes esperada en
+   bbdd/supabase_migration.sql.
    ============================================ */
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const toggle = document.getElementById('robotToggle');
   if (!toggle) return;
 
-  // ---- Identificación del robot ----
-  const robotId = localStorage.getItem('a1an_robot_id') || 'A1AN-7F3K-9X2P';
-  const robotIdEl = document.getElementById('robotId');
-  if (robotIdEl) robotIdEl.textContent = robotId;
-
-  // ---- Estado ----
+  // ---- Estado inicial (con fallback) ----
+  let robotDbId = null;            // PK numérico en tabla `robots`
+  let robotIdLabel = 'A1AN-7F3K-9X2P';
   let battery = 78;
   let robotOn = true;
   let drainInterval = null;
   let uptimeInterval = null;
   let uptimeSeconds = 4 * 3600 + 23 * 60; // baseline 4h 23min
+
+  // ---- Cargar estado real desde Supabase ----
+  if (typeof supabase !== 'undefined') {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { data: robot, error } = await supabase
+          .from('robots')
+          .select('id, nombre, modelo, estado, bateria_actual, ultima_conexion')
+          .eq('usuario_id', session.user.id)
+          .maybeSingle();
+        if (!error && robot) {
+          robotDbId = robot.id;
+          robotIdLabel = robot.modelo || robotIdLabel;
+          if (typeof robot.bateria_actual === 'number') battery = robot.bateria_actual;
+          robotOn = robot.estado !== 'apagado';
+          toggle.checked = robotOn;
+          if (robot.ultima_conexion) {
+            const ls = document.getElementById('lastSyncTime');
+            if (ls) {
+              const d = new Date(robot.ultima_conexion);
+              const today = new Date();
+              const sameDay = d.toDateString() === today.toDateString();
+              const hhmm = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+              ls.textContent = (sameDay ? 'Hoy, ' : d.toLocaleDateString('es-ES') + ' ') + hhmm;
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Supabase robot load failed:', e);
+    }
+  }
+
+  const robotIdEl = document.getElementById('robotId');
+  if (robotIdEl) robotIdEl.textContent = robotIdLabel;
 
   // ---- Componentes diagnóstico (5 requeridos) ----
   // Estados: 'ok' | 'warn' | 'fail' | 'off' (cuando el robot está apagado)
@@ -37,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
   startUptimeCounter();
 
   // ---- Toggle on/off ----
-  toggle.addEventListener('change', () => {
+  toggle.addEventListener('change', async () => {
     robotOn = toggle.checked;
     updateRobotState();
     if (robotOn) {
@@ -51,7 +88,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     renderDiagnostics();
     updateSyncButtonAvailability();
+    persistRobotState();
   });
+
+  async function persistRobotState() {
+    if (!robotDbId || typeof supabase === 'undefined') return;
+    try {
+      await supabase.from('robots')
+        .update({
+          estado: robotOn ? 'encendido' : 'apagado',
+          bateria_actual: battery,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', robotDbId);
+      await supabase.from('eventos_robot').insert({
+        robot_id: robotDbId,
+        usuario_id: (await supabase.auth.getSession()).data.session?.user.id,
+        tipo_evento: robotOn ? 'encendido' : 'apagado',
+        descripcion: robotOn ? 'Encendido manual desde la web' : 'Apagado manual desde la web'
+      });
+    } catch (e) { console.warn('persistRobotState failed:', e); }
+  }
 
   // ---- Sync button ----
   const syncBtn = document.getElementById('syncBtn');
@@ -64,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       syncBtn.disabled = true;
       syncBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation: spin 1s linear infinite;"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Sincronizando...';
-      setTimeout(() => {
+      setTimeout(async () => {
         const now = new Date();
         const timeStr = 'Hoy, ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
         const lastSync = document.getElementById('lastSyncTime');
@@ -72,6 +129,14 @@ document.addEventListener('DOMContentLoaded', () => {
         syncBtn.disabled = false;
         syncBtn.innerHTML = syncBtnHtml;
         showToast('Sincronización completada', 'success');
+        // Persistir en Supabase
+        if (robotDbId && typeof supabase !== 'undefined') {
+          try {
+            await supabase.from('robots')
+              .update({ ultima_conexion: now.toISOString() })
+              .eq('id', robotDbId);
+          } catch (e) { console.warn('sync persist failed:', e); }
+        }
       }, 2000);
     });
   }
@@ -130,6 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
     stopUptimeCounter();
     uptimeInterval = setInterval(() => {
       uptimeSeconds += 1;
+      // Solo refrescamos cada 30s para no machacar el DOM
       if (uptimeSeconds % 30 === 0) updateUptimeUI();
     }, 1000);
     updateUptimeUI();
@@ -177,6 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>`;
     }).join('');
 
+    // Badge global del diagnóstico
     if (badge) {
       if (!robotOn) {
         badge.className = 'badge';
