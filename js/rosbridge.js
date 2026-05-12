@@ -54,6 +54,10 @@ document.addEventListener('DOMContentLoaded', event => {
     // Habilitar / deshabilitar botones
     moveButtons.forEach(btn => { if (btn) btn.disabled = !isConnected; });
 
+    // Actualizar botón Ejecutar ruta según conexión
+    const btnExecuteRoute = document.getElementById('btnExecuteRoute');
+    if (btnExecuteRoute) btnExecuteRoute.disabled = !isConnected;
+
     // Cambiar el botón entre Conectar / Desconectar
     const iconSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>`;
     connectBtn.innerHTML = iconSvg + (isConnected ? ' Desconectar' : ' Conectar');
@@ -824,7 +828,7 @@ document.addEventListener('DOMContentLoaded', event => {
       sel.appendChild(opt);
     });
 
-    if (btnExecute) btnExecute.disabled = false;
+    if (btnExecute) btnExecute.disabled = !data.connected;
   }
 
   async function executeRoute() {

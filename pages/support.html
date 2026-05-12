@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -235,7 +235,7 @@
   <script src="/js/supabase-client.js"></script>
   <script src="/js/dashboard.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       // FAQ accordion
       document.querySelectorAll('.faq-question').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -246,16 +246,47 @@
         });
       });
 
+      // Get session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { window.location.href = '/pages/login.html'; return; }
+
       // Support contact form
       const supportForm = document.getElementById('supportContactForm');
       if (supportForm) {
-        supportForm.addEventListener('submit', (e) => {
+        supportForm.addEventListener('submit', async (e) => {
           e.preventDefault();
           const subject = document.getElementById('supportSubject').value.trim();
+          const message = document.getElementById('supportMessage').value.trim();
+
           if (!subject) {
             showToast('Introduce un asunto para tu consulta', 'danger');
             return;
           }
+          if (!message) {
+            showToast('Escribe un mensaje con tu consulta', 'danger');
+            return;
+          }
+
+          const btn = supportForm.querySelector('[type="submit"]');
+          const oldText = btn.textContent;
+          btn.textContent = 'Enviando...';
+          btn.disabled = true;
+
+          const { error } = await supabase.from('consultas_soporte').insert({
+            usuario_id: session.user.id,
+            asunto: subject,
+            mensaje: message
+          });
+
+          btn.textContent = oldText;
+          btn.disabled = false;
+
+          if (error) {
+            console.error('Error enviando consulta:', error);
+            showToast('Error al enviar la consulta. Inténtalo de nuevo.', 'danger');
+            return;
+          }
+
           showToast('Consulta enviada correctamente. Te responderemos pronto.', 'success');
           supportForm.reset();
         });
@@ -264,13 +295,40 @@
       // Report error form
       const reportForm = document.getElementById('reportErrorForm');
       if (reportForm) {
-        reportForm.addEventListener('submit', (e) => {
+        reportForm.addEventListener('submit', async (e) => {
           e.preventDefault();
           const type = document.getElementById('errorType').value;
+          const description = document.getElementById('errorDescription').value.trim();
+
           if (!type) {
             showToast('Selecciona el tipo de error', 'danger');
             return;
           }
+          if (!description) {
+            showToast('Describe el error para que podamos investigarlo', 'danger');
+            return;
+          }
+
+          const btn = reportForm.querySelector('[type="submit"]');
+          const oldText = btn.textContent;
+          btn.textContent = 'Enviando...';
+          btn.disabled = true;
+
+          const { error } = await supabase.from('reportes_error').insert({
+            usuario_id: session.user.id,
+            tipo_error: type,
+            descripcion: description
+          });
+
+          btn.textContent = oldText;
+          btn.disabled = false;
+
+          if (error) {
+            console.error('Error reportando:', error);
+            showToast('Error al enviar el reporte. Inténtalo de nuevo.', 'danger');
+            return;
+          }
+
           showToast('Error reportado correctamente. Gracias por tu ayuda.', 'success');
           reportForm.reset();
         });

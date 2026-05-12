@@ -276,3 +276,43 @@ CREATE POLICY "Gestionar pasos de propias rutas"
       WHERE r.id = ruta_id AND r.usuario_id = auth.uid()
     )
   );
+
+
+-- =============================================
+-- 12. TABLA CONSULTAS_SOPORTE
+-- =============================================
+CREATE TABLE public.consultas_soporte (
+  id              serial PRIMARY KEY,
+  usuario_id      uuid        NOT NULL REFERENCES public.usuarios(id) ON DELETE CASCADE,
+  asunto          varchar(200) NOT NULL,
+  mensaje         text        NOT NULL,
+  estado          varchar(30) NOT NULL DEFAULT 'pendiente',
+  created_at      timestamptz DEFAULT now() NOT NULL
+);
+
+ALTER TABLE public.consultas_soporte ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Gestionar propias consultas"
+  ON public.consultas_soporte FOR ALL
+  USING (auth.uid() = usuario_id)
+  WITH CHECK (auth.uid() = usuario_id);
+
+
+-- =============================================
+-- 13. TABLA REPORTES_ERROR
+-- =============================================
+CREATE TABLE public.reportes_error (
+  id              serial PRIMARY KEY,
+  usuario_id      uuid        NOT NULL REFERENCES public.usuarios(id) ON DELETE CASCADE,
+  tipo_error      varchar(50) NOT NULL,
+  descripcion     text        NOT NULL,
+  estado          varchar(30) NOT NULL DEFAULT 'pendiente',
+  created_at      timestamptz DEFAULT now() NOT NULL
+);
+
+ALTER TABLE public.reportes_error ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Gestionar propios reportes"
+  ON public.reportes_error FOR ALL
+  USING (auth.uid() = usuario_id)
+  WITH CHECK (auth.uid() = usuario_id);
