@@ -172,14 +172,21 @@ La URL de cámara se configura en `js/robot-config.js` con `cameraStreamHost`.
 
 Este repo incluye un script para preparar la web cuando ROS se ejecuta en otro equipo de la misma red local:
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\update_web_robot_ip.ps1
+```bash
+chmod +x ./scripts/update_web_robot_ip.sh
+./scripts/update_web_robot_ip.sh
 ```
 
 Si detecta una IP local, pulsa `Enter` para usarla. Tambien puedes pasarla directamente:
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\update_web_robot_ip.ps1 -Ip 192.168.1.50
+```bash
+./scripts/update_web_robot_ip.sh --ip 192.168.1.50
+```
+
+Si la web esta en otra carpeta:
+
+```bash
+./scripts/update_web_robot_ip.sh --path /ruta/a/a1an-web
 ```
 
 El script actualiza `js/robot-config.js` para que el dashboard use:
@@ -190,6 +197,13 @@ ROSBridge: ws://IP_DEL_PC_ROS:9090
 ```
 
 Esto esta pensado para uso local/LAN. Si abres la web desplegada en Vercel por HTTPS, el navegador puede bloquear `http://` y `ws://`; para ese caso haria falta exponer ROS mediante `https://` y `wss://`.
+
+En Windows puedes usar la version PowerShell equivalente:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\update_web_robot_ip.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\update_web_robot_ip.ps1 -Ip 192.168.1.50
+```
 
 ---
 
