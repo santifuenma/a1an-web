@@ -158,12 +158,6 @@
             <label for="routineExercise">Ejercicio</label>
             <select id="routineExercise">
               <option value="">Seleccionar ejercicio</option>
-              <option value="hombro">Movilidad de hombro</option>
-              <option value="rodilla">Flexión de rodilla</option>
-              <option value="muneca">Extensión de muñeca</option>
-              <option value="core">Fortalecimiento de core</option>
-              <option value="equilibrio">Equilibrio estático</option>
-              <option value="tobillo">Movilidad de tobillo</option>
             </select>
           </div>
           <div class="form-group" style="margin-bottom: var(--spacing-5);">
@@ -213,14 +207,62 @@
       cancelBtn?.addEventListener('click', closeModal);
       modal?.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 
-      saveBtn?.addEventListener('click', () => {
+      function populateExerciseSelect() {
+        const select = document.getElementById('routineExercise');
+        if (!select || !window.A1AN_EXERCISES) return;
+        const ejercicios = window.A1AN_EXERCISES.getEjercicios();
+        // Limpiar opciones excepto la primera
+        select.innerHTML = '<option value="">Seleccionar ejercicio</option>';
+        for (const ej of ejercicios) {
+          const opt = document.createElement('option');
+          opt.value = ej.id;
+          opt.textContent = ej.titulo;
+          select.appendChild(opt);
+        }
+      }
+
+      openBtn?.addEventListener('click', () => {
+        populateExerciseSelect();
+        openModal();
+      });
+
+      saveBtn?.addEventListener('click', async () => {
         const name = document.getElementById('routineName').value.trim();
-        if (!name) {
-          showToast('Introduce un nombre para la rutina', 'danger');
+        const ejercicioId = parseInt(document.getElementById('routineExercise').value, 10);
+        const dia = document.getElementById('routineDay').value;
+        const hora = document.getElementById('routineTime').value;
+
+        if (!name) { showToast('Introduce un nombre para la rutina', 'danger'); return; }
+        if (!ejercicioId) { showToast('Selecciona un ejercicio', 'danger'); return; }
+        if (!dia) { showToast('Selecciona un día', 'danger'); return; }
+        if (!hora) { showToast('Selecciona una hora', 'danger'); return; }
+
+        if (!window.A1AN_EXERCISES) {
+          showToast('Página aún cargando, espera un momento', 'danger');
           return;
         }
+
+        saveBtn.disabled = true;
+        const original = saveBtn.textContent;
+        saveBtn.textContent = 'Guardando...';
+
+        const res = await window.A1AN_EXERCISES.addRoutineEntry({
+          ejercicio_id: ejercicioId,
+          dia_semana: dia,
+          hora_programada: hora
+        });
+
+        saveBtn.disabled = false;
+        saveBtn.textContent = original;
+
+        if (!res.ok) {
+          showToast(res.error || 'No se pudo guardar la rutina', 'danger');
+          return;
+        }
+
         closeModal();
-        showToast('Rutina "' + name + '" creada correctamente', 'success');
+        showToast('Rutina "' + name + '" guardada correctamente', 'success');
+        document.getElementById('routineForm').reset();
       });
     });
   </script>

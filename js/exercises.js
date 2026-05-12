@@ -276,7 +276,7 @@
         estado: s.estado
       }));
 
-      return { ejercicios, rutinaEjercicios, sesiones };
+      return { ejercicios, rutinaEjercicios, sesiones, rutinaId: rutinaRes.data ? rutinaRes.data.id : null };
     } catch (e) {
       console.warn('Supabase exercises fetch failed:', e);
       return null;
@@ -288,18 +288,18 @@
     let ejercicios = EJERCICIOS;
     let rutinaEjercicios = RUTINA_EJERCICIOS;
     let sesiones = SESIONES;
+    let rutinaId = null;
 
     const live = await loadFromSupabase();
     if (live) {
       ejercicios = live.ejercicios.length ? live.ejercicios : EJERCICIOS;
       rutinaEjercicios = live.rutinaEjercicios;
       sesiones = live.sesiones;
+      rutinaId = live.rutinaId;
 
-      // Sustituir la lista global usada por findEjercicio()
       window.__A1AN_EJERCICIOS__ = ejercicios;
     }
 
-    // Sobrecargar findEjercicio para que use la lista activa
     const _findEjercicio = function (id) {
       const list = window.__A1AN_EJERCICIOS__ || EJERCICIOS;
       return list.find(e => e.id === id);
@@ -309,6 +309,75 @@
     renderBiblioteca(ejercicios, document.getElementById('libraryGrid'));
     renderScheduleWithFinder(rutinaEjercicios, document.getElementById('scheduleGrid'), _findEjercicio);
     renderHistorialWithFinder(sesiones, document.getElementById('historyBody'), _findEjercicio);
+
+    // ---- API pública para el modal "Nueva rutina" ----
+    window.A1AN_EXERCISES = {
+      // Lista de ejercicios disponibles (id real de BD + titulo)
+      getEjercicios: () => ejercicios.slice(),
+
+      // ID de la rutina activa del usuario (null si no hay sesión)
+      getRutinaId: () => rutinaId,
+
+      // Inserta un ejercicio en la rutina del usuario y refresca el grid
+      addRoutineEntry: async ({ ejercicio_id, dia_semana, hora_programada }) => {
+        if (typeof supabase === 'undefined') {
+          return { ok: false, error: 'Supabase no disponible' };
+        }
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return { ok: false, error: 'Necesitas iniciar sesión' };
+
+        let targetRutinaId = rutinaId;
+
+        // Si el usuario no tiene rutina activa, creamos una vacía
+        if (!targetRutinaId) {
+          const { data: newRutina, error: rErr } = await supabase
+            .from('rutinas')
+            .insert({
+              usuario_id: session.user.id,
+              nombre: 'Mi rutina',
+              fecha_inicio: new Date().toISOString().slice(0, 10),
+              activa: true
+            })
+            .select('id')
+            .single();
+          if (rErr || !newRutina) return { ok: false, error: 'No se pudo crear la rutina' };
+          targetRutinaId = newRutina.id;
+          rutinaId = targetRutinaId;
+        }
+
+        // Insertar entrada de rutina_ejercicios
+        const { error: reErr } = await supabase
+          .from('rutina_ejercicios')
+          .insert({
+            rutina_id: targetRutinaId,
+            ejercicio_id,
+            dia_semana,
+            hora_programada
+          });
+        if (reErr) return { ok: false, error: reErr.message || 'Error al guardar' };
+
+        // Refrescar grid local
+        const isoDay = (typeof dia_semana === 'number')
+          ? dia_semana
+          : (DIA_NAME_TO_ISO[String(dia_semana).toLowerCase()] || 0);
+        if (isoDay > 0) {
+          rutinaEjercicios.push({
+            ejercicio_id,
+            dia_semana: isoDay,
+            hora_programada: String(hora_programada).slice(0, 5)
+          });
+          renderScheduleWithFinder(rutinaEjercicios, document.getElementById('scheduleGrid'), _findEjercicio);
+
+          // Si el ejercicio pasa de 'programado' a 'activo', re-renderizar biblioteca
+          const ej = ejercicios.find(e => e.id === ejercicio_id);
+          if (ej && ej.estado_ui !== 'activo') {
+            ej.estado_ui = 'activo';
+            renderBiblioteca(ejercicios, document.getElementById('libraryGrid'));
+          }
+        }
+        return { ok: true };
+      }
+    };
   });
 
   // ---- Variantes de render que usan finder externo (para datos Supabase) ----
