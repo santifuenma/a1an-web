@@ -1,31 +1,133 @@
 /* ============================================
    Safe&Sound Robotics — A1AN Web
-   Notifications JS
+   Notifications JS — Supabase integration
    ============================================ */
 
-document.addEventListener('DOMContentLoaded', () => {
+/**
+ * Crea una notificación en Supabase.
+ * Puede llamarse desde cualquier script (rosbridge.js, dashboard.js, etc.)
+ *
+ * @param {Object} opts
+ * @param {string} opts.titulo   - Título de la notificación
+ * @param {string} opts.mensaje  - Mensaje descriptivo
+ * @param {string} opts.tipo     - Tipo: 'alerta', 'sistema', 'robot', 'ruta'
+ */
+async function createNotification({ titulo, mensaje, tipo }) {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const { data: robot } = await supabase
+      .from('robots')
+      .select('id')
+      .eq('usuario_id', session.user.id)
+      .maybeSingle();
+
+    await supabase.from('notificaciones').insert({
+      usuario_id: session.user.id,
+      robot_id: robot?.id ?? null,
+      titulo,
+      mensaje,
+      tipo,
+      leida: false
+    });
+  } catch (err) {
+    console.error('Error creando notificación:', err);
+  }
+}
+
+// Exportar globalmente
+window.createNotification = createNotification;
+
+
+/* ============================================
+   Página de notificaciones (solo se ejecuta
+   si existe #notificationList en el DOM)
+   ============================================ */
+document.addEventListener('DOMContentLoaded', async () => {
   const list = document.getElementById('notificationList');
   const filters = document.getElementById('notifFilters');
   if (!list) return;
 
-  const notifications = [
-    { id: 1, type: 'alert', title: 'Batería baja', message: 'El nivel de batería de A1AN ha descendido por debajo del 20%. Conecta el cargador.', time: 'Hace 15 min', read: false },
-    { id: 2, type: 'reminder', title: 'Ejercicio programado', message: 'Tienes pendiente el ejercicio "Flexión de rodilla" programado para las 16:00.', time: 'Hace 1h', read: false },
-    { id: 3, type: 'alert', title: 'Actualización disponible', message: 'Hay una nueva actualización de firmware (v2.4.2) disponible para tu robot A1AN.', time: 'Hace 2h', read: false },
-    { id: 4, type: 'system', title: 'Sincronización completada', message: 'Los datos se han sincronizado correctamente con el servidor.', time: 'Hace 3h', read: true },
-    { id: 5, type: 'reminder', title: 'Recordatorio de ejercicio', message: 'No olvides realizar tu rutina de movilidad de hombro hoy.', time: 'Hace 5h', read: true },
-    { id: 6, type: 'system', title: 'Sesión iniciada', message: 'Se ha iniciado sesión desde un nuevo dispositivo.', time: 'Ayer', read: true },
-    { id: 7, type: 'alert', title: 'Sensor de temperatura', message: 'La temperatura interna del robot está dentro de los parámetros normales (38°C).', time: 'Ayer', read: true },
-    { id: 8, type: 'reminder', title: 'Revisión semanal', message: 'Es momento de revisar tu progreso semanal en la sección de actividad.', time: 'Hace 2 días', read: true },
-    { id: 9, type: 'system', title: 'Robot vinculado', message: 'El robot A1AN-7F3K-9X2P se ha vinculado correctamente a tu cuenta.', time: 'Hace 3 días', read: true }
-  ];
+  // Session
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return;
 
-  let currentFilter = 'all';
+  let notifications = [];
+  let currentFilter = 'unread';
 
+  // --- Cargar notificaciones desde Supabase ---
+  async function loadNotifications() {
+    const { data, error } = await supabase
+      .from('notificaciones')
+      .select('*')
+      .eq('usuario_id', session.user.id)
+      .order('fecha_hora_envio', { ascending: false })
+      .limit(100);
+
+    if (error) {
+      console.error('Error cargando notificaciones:', error);
+      return;
+    }
+
+    notifications = (data || []).map(n => ({
+      id: n.id,
+      type: mapType(n.tipo),
+      title: n.titulo,
+      message: n.mensaje,
+      time: formatTime(n.fecha_hora_envio),
+      read: n.leida
+    }));
+
+    renderNotifications();
+    updateBadges();
+  }
+
+  // --- Mapear tipos de la BBDD a los filtros de la UI ---
+  function mapType(tipo) {
+    const map = {
+      'alerta': 'alert',
+      'recordatorio': 'reminder',
+      'sistema': 'system',
+      'robot': 'system',
+      'ruta': 'system'
+    };
+    return map[tipo] || 'system';
+  }
+
+  // --- Formato de tiempo relativo ---
+  function formatTime(isoDate) {
+    const date = new Date(isoDate);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMin = Math.floor(diffMs / 60000);
+    const diffHrs = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMin < 1) return 'Ahora';
+    if (diffMin < 60) return `Hace ${diffMin} min`;
+    if (diffHrs < 24) return `Hace ${diffHrs}h`;
+    if (diffDays === 1) return 'Ayer';
+    if (diffDays < 7) return `Hace ${diffDays} días`;
+    return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+  }
+
+  // --- Iconos por tipo ---
+  function getTypeIcon(type) {
+    const icons = {
+      alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+      reminder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+      system: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>'
+    };
+    return icons[type] || icons.system;
+  }
+
+  // --- Render ---
   function renderNotifications() {
     const filtered = notifications.filter(n => {
       if (currentFilter === 'all') return true;
       if (currentFilter === 'unread') return !n.read;
+      if (currentFilter === 'read') return n.read;
       return n.type === currentFilter;
     });
 
@@ -39,37 +141,44 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    list.innerHTML = filtered.map(n => {
-      const typeLabels = { alert: 'Alerta', reminder: 'Recordatorio', system: 'Sistema' };
-      const typeBadgeClass = { alert: 'badge-danger', reminder: 'badge-warning', system: 'badge-info' };
+    const typeLabels = { alert: 'Alerta', reminder: 'Recordatorio', system: 'Sistema' };
+    const typeBadgeClass = { alert: 'badge-danger', reminder: 'badge-warning', system: 'badge-info' };
 
-      return `
-        <div class="notification-item ${n.read ? '' : 'unread'}" data-id="${n.id}">
-          <div class="notification-dot"></div>
-          <div class="notification-content">
-            <h4>${n.title}</h4>
-            <p>${n.message}</p>
-          </div>
-          <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
-            <span class="notification-time">${n.time}</span>
-            <span class="notification-type-badge badge ${typeBadgeClass[n.type]}">${typeLabels[n.type]}</span>
-          </div>
-        </div>`;
-    }).join('');
+    list.innerHTML = filtered.map(n => `
+      <div class="notification-item ${n.read ? '' : 'unread'}" data-id="${n.id}">
+        <div class="notification-dot"></div>
+        <div class="notification-content">
+          <h4>${n.title}</h4>
+          <p>${n.message}</p>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+          <span class="notification-time">${n.time}</span>
+          <span class="notification-type-badge badge ${typeBadgeClass[n.type]}">${typeLabels[n.type]}</span>
+        </div>
+      </div>`).join('');
 
-    list.querySelectorAll('.notification-item').forEach(item => {
-      item.addEventListener('click', () => {
+    // Click to mark as read
+    list.querySelectorAll('.notification-item.unread').forEach(item => {
+      item.addEventListener('click', async () => {
         const id = parseInt(item.dataset.id);
+
+        // Update in Supabase
+        await supabase
+          .from('notificaciones')
+          .update({ leida: true })
+          .eq('id', id);
+
+        // Update local state
         const notif = notifications.find(n => n.id === id);
-        if (notif && !notif.read) {
-          notif.read = true;
-          renderNotifications();
-          updateBadges();
-        }
+        if (notif) notif.read = true;
+
+        renderNotifications();
+        updateBadges();
       });
     });
   }
 
+  // --- Badges ---
   function updateBadges() {
     const unreadCount = notifications.filter(n => !n.read).length;
     const sidebarBadge = document.getElementById('sidebarNotifBadge');
@@ -84,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Filter tabs
+  // --- Filter tabs ---
   if (filters) {
     filters.querySelectorAll('.notification-filter').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -96,6 +205,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  renderNotifications();
-  updateBadges();
+  // --- Initial load ---
+  await loadNotifications();
+
+  // --- Auto-refresh every 30 seconds ---
+  setInterval(loadNotifications, 30000);
 });

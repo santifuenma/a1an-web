@@ -9,7 +9,8 @@ document.addEventListener('DOMContentLoaded', event => {
     ros: null,
     rosbridge_address: document.getElementById('rosbridgeUrl').value,
     connected: false,
-    detectionsTopic: null
+    detectionsTopic: null,
+    manualDisconnect: false
   };
 
   const connectBtn = document.getElementById('rosbridgeConnectBtn');
@@ -75,9 +76,24 @@ document.addEventListener('DOMContentLoaded', event => {
 
     data.ros.on('connection', () => {
       data.connected = true;
+      data.manualDisconnect = false;
       setStatus('connected');
       subscribeDetections();
       subscribeToMap();
+
+      // Persist connection for auto-reconnect
+      localStorage.setItem('rosbridge_url', data.rosbridge_address);
+      localStorage.setItem('rosbridge_autoconnect', 'true');
+
+      // Only notify on manual connect, not auto-reconnect
+      if (!data.isAutoReconnect) {
+        window.createNotification?.({
+          titulo: 'Robot conectado',
+          mensaje: 'Se ha establecido conexión con el robot A1AN vía ROSBridge.',
+          tipo: 'robot'
+        });
+      }
+      data.isAutoReconnect = false;
     });
 
     data.ros.on('error', (error) => {
@@ -95,16 +111,35 @@ document.addEventListener('DOMContentLoaded', event => {
       unsubscribeDetections();
       window.setVisionConnectionState?.('disconnected');
       drawMapDisconnectedOverlay();
+
+      // Only notify if not a manual disconnect (to avoid duplicates)
+      if (!data.manualDisconnect) {
+        window.createNotification?.({
+          titulo: 'Robot desconectado',
+          mensaje: 'Se ha perdido la conexión con el robot A1AN.',
+          tipo: 'robot'
+        });
+      }
     });
   }
 
   // --- Desconectar ---
   function disconnect() {
+    data.manualDisconnect = true;
     unsubscribeDetections();
     if (data.ros) data.ros.close();
     data.connected = false;
     setStatus('disconnected');
     window.setVisionConnectionState?.('disconnected');
+
+    // Clear auto-reconnect
+    localStorage.removeItem('rosbridge_autoconnect');
+
+    window.createNotification?.({
+      titulo: 'Robot desconectado',
+      mensaje: 'Has desconectado manualmente el robot A1AN.',
+      tipo: 'robot'
+    });
   }
 
   function subscribeDetections() {
@@ -316,6 +351,11 @@ document.addEventListener('DOMContentLoaded', event => {
       console.error('Error guardando el área:', error);
       alert('Error al guardar. Inténtalo de nuevo.');
     } else {
+      window.createNotification?.({
+        titulo: `Área "${name}" guardada`,
+        mensaje: `Se ha guardado el área "${name}" en las coordenadas (${x.toFixed(2)}, ${y.toFixed(2)}).`,
+        tipo: 'sistema'
+      });
       document.getElementById('newAreaName').value = '';
       loadAreas();
     }
@@ -389,7 +429,14 @@ document.addEventListener('DOMContentLoaded', event => {
     const areaKey = sel.value;
     const coords = areas[areaKey];
     if (coords) {
+      const areaName = sel.options[sel.selectedIndex]?.text || areaKey;
       sendNavGoal(coords.x, coords.y);
+
+      window.createNotification?.({
+        titulo: `Navegando a ${areaName}`,
+        mensaje: `Se ha enviado al robot al área "${areaName}" (x=${coords.x.toFixed(2)}, y=${coords.y.toFixed(2)}).`,
+        tipo: 'ruta'
+      });
     }
   }
 
@@ -789,6 +836,12 @@ document.addEventListener('DOMContentLoaded', event => {
     renderRouteSteps();
     await loadSavedRoutes();
 
+    window.createNotification?.({
+      titulo: `Ruta "${name}" creada`,
+      mensaje: `Se ha guardado la ruta "${name}" con ${pasos.length} paso(s).`,
+      tipo: 'ruta'
+    });
+
     alert('Ruta guardada correctamente.');
   }
 
@@ -919,6 +972,13 @@ document.addEventListener('DOMContentLoaded', event => {
             );
             if (dist < THRESHOLD) {
               console.log(`Llegó a ${area.nombre} (dist=${dist.toFixed(2)}m)`);
+
+              window.createNotification?.({
+                titulo: `Robot llegó a ${area.nombre}`,
+                mensaje: `El robot ha llegado al área "${area.nombre}" (paso ${paso.orden}).`,
+                tipo: 'ruta'
+              });
+
               clearInterval(check);
               resolve();
               return;
@@ -941,10 +1001,22 @@ document.addEventListener('DOMContentLoaded', event => {
         .eq('id', paso.id);
     }
 
+    const routeName = document.getElementById('savedRouteSelect')?.options[
+      document.getElementById('savedRouteSelect')?.selectedIndex
+    ]?.textContent || 'Ruta';
+
     await supabase
       .from('rutas_robot')
       .update({ estado: routeRunning ? 'completada' : 'cancelada' })
       .eq('id', routeId);
+
+    if (routeRunning) {
+      window.createNotification?.({
+        titulo: 'Ruta completada',
+        mensaje: `El robot ha completado la ruta "${routeName}" correctamente.`,
+        tipo: 'ruta'
+      });
+    }
 
     routeRunning = false;
     document.getElementById('btnExecuteRoute').disabled = false;
@@ -958,6 +1030,15 @@ document.addEventListener('DOMContentLoaded', event => {
     stopNavigation();
 
     const routeId = document.getElementById('savedRouteSelect')?.value;
+    const routeName = document.getElementById('savedRouteSelect')?.options[
+      document.getElementById('savedRouteSelect')?.selectedIndex
+    ]?.textContent || 'Ruta';
+
+    window.createNotification?.({
+      titulo: 'Ruta detenida',
+      mensaje: `La ruta "${routeName}" ha sido detenida manualmente.`,
+      tipo: 'ruta'
+    });
 
     if (routeId) {
       await supabase
@@ -987,4 +1068,16 @@ document.addEventListener('DOMContentLoaded', event => {
 
   // Estado inicial: botón detener visible (o manejado por CSS)
   if (btnStopNav) btnStopNav.style.display = 'inline-flex';
+
+  // --- Auto-reconnect from localStorage ---
+  const savedUrl = localStorage.getItem('rosbridge_url');
+  const shouldAutoConnect = localStorage.getItem('rosbridge_autoconnect');
+  if (savedUrl && shouldAutoConnect === 'true' && !data.connected) {
+    const urlInput = document.getElementById('rosbridgeUrl');
+    if (urlInput) urlInput.value = savedUrl;
+    data.rosbridge_address = savedUrl;
+    console.log('Auto-reconnecting to ROSBridge:', savedUrl);
+    data.isAutoReconnect = true;
+    connect();
+  }
 });

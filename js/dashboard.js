@@ -57,6 +57,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initCameraTimestamp();
   initWeeklyPlan();
   initDashboardData(user);
+  initNotificationBadges(user);
 
 });
 
@@ -70,13 +71,23 @@ function initPatientWelcome(user) {
   if (heading) {
     const hour = new Date().getHours();
     const greeting = hour < 12 ? 'Buenos días' : hour < 20 ? 'Buenas tardes' : 'Buenas noches';
-    heading.innerHTML = `${greeting}, <span id="welcomeName">${firstName}</span> 👋`;
+    heading.innerHTML = `${greeting}, <span id="welcomeName">${firstName}</span>`;
   }
 
   if (dateEl) {
     const now = new Date();
     const options = { weekday: 'long', day: 'numeric', month: 'long' };
     dateEl.textContent = `Hoy es ${now.toLocaleDateString('es-ES', options)}. ¡Sigue adelante con tu rehabilitación!`;
+  }
+
+  // Streak: days since account creation
+  const streakEl = document.getElementById('streakCount');
+  if (streakEl && user.created_at) {
+    const created = new Date(user.created_at);
+    const now = new Date();
+    const diffMs = now - created;
+    const diffDays = Math.max(1, Math.floor(diffMs / 86400000));
+    streakEl.textContent = diffDays;
   }
 }
 
@@ -774,5 +785,48 @@ function showToast(message, type = '') {
   toast.className = 'toast show';
   if (type) toast.classList.add('toast-' + type);
   setTimeout(() => { toast.classList.remove('show'); }, 3500);
+}
+
+// --- Global Notification Badge (runs on ALL pages) ---
+async function initNotificationBadges(user) {
+  await updateGlobalBadges(user.id);
+  setInterval(() => updateGlobalBadges(user.id), 15000);
+}
+
+async function updateGlobalBadges(userId) {
+  try {
+    const { count, error } = await supabase
+      .from('notificaciones')
+      .select('*', { count: 'exact', head: true })
+      .eq('usuario_id', userId)
+      .eq('leida', false);
+
+    if (error) return;
+
+    const unread = count || 0;
+
+    // Update topbar badge (all pages)
+    document.querySelectorAll('.topbar-notification-badge').forEach(badge => {
+      if (unread > 0) {
+        badge.textContent = unread > 9 ? '9+' : unread;
+        badge.style.display = 'flex';
+      } else {
+        badge.style.display = 'none';
+      }
+    });
+
+    // Update sidebar badge
+    const sidebarBadge = document.getElementById('sidebarNotifBadge');
+    if (sidebarBadge) {
+      if (unread > 0) {
+        sidebarBadge.textContent = unread;
+        sidebarBadge.style.display = 'flex';
+      } else {
+        sidebarBadge.style.display = 'none';
+      }
+    }
+  } catch (err) {
+    console.error('Error updating notification badges:', err);
+  }
 }
 
