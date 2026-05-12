@@ -166,30 +166,7 @@ Detección:  http://IP_DEL_PC_ROS:8081/stream?topic=/a1an_vision/debug_image&typ
 ROSBridge:  ws://IP_DEL_PC_ROS:9090
 ```
 
-La URL de cámara se configura en `js/robot-config.js` con `cameraStreamHost`.
-
-### Actualizar IP del robot en la web
-
-Este repo incluye un script para preparar la web cuando ROS se ejecuta en otro equipo de la misma red local:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\update_web_robot_ip.ps1
-```
-
-Si detecta una IP local, pulsa `Enter` para usarla. Tambien puedes pasarla directamente:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\update_web_robot_ip.ps1 -Ip 192.168.1.50
-```
-
-El script actualiza `js/robot-config.js` para que el dashboard use:
-
-```text
-Camara:    http://IP_DEL_PC_ROS:8081
-ROSBridge: ws://IP_DEL_PC_ROS:9090
-```
-
-Esto esta pensado para uso local/LAN. Si abres la web desplegada en Vercel por HTTPS, el navegador puede bloquear `http://` y `ws://`; para ese caso haria falta exponer ROS mediante `https://` y `wss://`.
+La URL de cámara se configura en `js/dashboard.js` con `CAMERA_STREAM_HOST`.
 
 ---
 
