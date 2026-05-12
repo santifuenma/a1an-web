@@ -959,6 +959,7 @@
 .activity-icon.alert { background: #fef3c7; color: #92400e; }
 .activity-icon.sync { background: #ede9fe; color: #5b21b6; }
 .activity-icon.error { background: #fee2e2; color: #991b1b; }
+.activity-icon.battery { background: #ffedd5; color: #9a3412; }
 
 .activity-info {
   flex: 1;
