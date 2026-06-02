@@ -12,7 +12,7 @@ const CAMERA_DEBUG_TOPIC = '/a1an_vision/debug_image';
 // 3. Puedes forzar la IP del robot definiendo window.A1AN_CAMERA_STREAM_HOST.
 
 const CAMERA_STREAM_HOST = window.A1AN_CAMERA_STREAM_HOST ||
-  (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
+  (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' && window.location.hostname !== ''
     ? `http://${window.location.hostname}:8081`
     : 'http://localhost:8081');
 
