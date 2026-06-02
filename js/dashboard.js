@@ -108,7 +108,9 @@ function initCameraTimestamp() {
 function updateCameraFeed() {
   const img = document.getElementById('cameraFeed');
   if (!img) return;
-  img.src = cameraDetectionsEnabled ? CAMERA_DEBUG_STREAM_URL : CAMERA_STREAM_URL;
+  const baseUrl = cameraDetectionsEnabled ? CAMERA_DEBUG_STREAM_URL : CAMERA_STREAM_URL;
+  const separator = baseUrl.includes('?') ? '&' : '?';
+  img.src = baseUrl + separator + '_t=' + Date.now();
 }
 
 function initCameraFeed() {
@@ -120,7 +122,7 @@ function initCameraFeed() {
   if (!img || !container) return;
 
   let retryCount = 0;
-  const MAX_RETRIES = 5;
+  const MAX_RETRIES = 15;
 
   const setCameraState = (state) => {
     const unavailable = state === 'error';
@@ -144,7 +146,8 @@ function initCameraFeed() {
       modeText.textContent = cameraDetectionsEnabled ? 'Vista con detección de objetos' : 'Vista normal del robot';
     }
     setCameraState('loading');
-    updateCameraFeed();
+    retryCount = 0;
+    loadCameraStream();
   };
 
   detectionToggle?.addEventListener('click', () => {
@@ -152,31 +155,43 @@ function initCameraFeed() {
     updateCameraMode();
   });
 
+  // Attach listeners BEFORE setting src — this is critical for MJPEG streams
   img.addEventListener('load', () => {
     retryCount = 0;
     setCameraState('online');
   });
 
   img.addEventListener('error', () => {
+    // Ignore errors when src is empty (initial state)
+    if (!img.src || img.src === window.location.href) return;
+
     if (retryCount < MAX_RETRIES) {
       retryCount++;
       console.log(`Reintentando conexión con cámara (${retryCount}/${MAX_RETRIES})...`);
-      setTimeout(updateCameraFeed, 2000);
+      setTimeout(loadCameraStream, 2000);
     } else {
       setCameraState('error');
     }
   });
 
-  setCameraState('loading');
-  updateCameraFeed();
+  // Use a cache-buster to force browser to create a fresh connection on each retry
+  function loadCameraStream() {
+    const baseUrl = cameraDetectionsEnabled ? CAMERA_DEBUG_STREAM_URL : CAMERA_STREAM_URL;
+    const separator = baseUrl.includes('?') ? '&' : '?';
+    img.src = baseUrl + separator + '_t=' + Date.now();
+  }
 
-  // Reintento periódico si se pierde la señal
+  setCameraState('loading');
+  loadCameraStream();
+
+  // Periodic retry only when camera is in error state (after all retries exhausted)
   setInterval(() => {
     if (container.classList.contains('camera-unavailable')) {
       retryCount = 0;
-      updateCameraFeed();
+      setCameraState('loading');
+      loadCameraStream();
     }
-  }, 10000);
+  }, 15000);
 }
 
 window.updateCameraFeed = updateCameraFeed;
