@@ -109,8 +109,10 @@ function updateCameraFeed() {
   const img = document.getElementById('cameraFeed');
   if (!img) return;
   const baseUrl = cameraDetectionsEnabled ? CAMERA_DEBUG_STREAM_URL : CAMERA_STREAM_URL;
-  const separator = baseUrl.includes('?') ? '&' : '?';
-  img.src = baseUrl + separator + '_t=' + Date.now();
+  img.src = '';
+  setTimeout(() => {
+    img.src = baseUrl;
+  }, 50);
 }
 
 function initCameraFeed() {
@@ -174,11 +176,14 @@ function initCameraFeed() {
     }
   });
 
-  // Use a cache-buster to force browser to create a fresh connection on each retry
+  // Clear src and wait slightly before reassigning to force a browser reconnect
+  // without altering the URL (since web_video_server may reject unknown query params)
   function loadCameraStream() {
     const baseUrl = cameraDetectionsEnabled ? CAMERA_DEBUG_STREAM_URL : CAMERA_STREAM_URL;
-    const separator = baseUrl.includes('?') ? '&' : '?';
-    img.src = baseUrl + separator + '_t=' + Date.now();
+    img.src = '';
+    setTimeout(() => {
+      img.src = baseUrl;
+    }, 50);
   }
 
   setCameraState('loading');
